@@ -12,16 +12,9 @@ import { beginNight, beginDayVote, submitNightAction, castDayVote } from "@/lib/
 import { toPlayerView } from "./shared";
 import type { NightActionType } from "@/lib/game/types";
 
-export function MafiaGame({
-  roomCode,
-  userId,
-  isHost,
-}: {
-  roomCode: string;
-  userId: string;
-  isHost: boolean;
-}) {
+export function MafiaGame({ roomCode }: { roomCode: string }) {
   const {
+    userId,
     game,
     players,
     me,
@@ -48,13 +41,15 @@ export function MafiaGame({
     );
   }
 
-  if (error || !game) {
+  if (error || !game || !userId) {
     return (
       <main className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center safe-top safe-bottom">
         <p className="text-foreground-muted">{error ?? "Something went wrong"}</p>
       </main>
     );
   }
+
+  const isHost = game.host_id === userId;
 
   return (
     <main className="flex flex-1 flex-col">
