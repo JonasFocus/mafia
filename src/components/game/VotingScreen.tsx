@@ -184,7 +184,7 @@ function VoteCounterCard({
               )}
               {p.userId === meId && (
                 <span
-                  className="absolute -top-1 left-1/2 -translate-x-1/2 rounded-full px-1 text-[8px] font-semibold uppercase tracking-wide"
+                  className="absolute -top-1 left-1/2 -translate-x-1/2 rounded-full px-1 text-[10px] font-semibold uppercase tracking-wide"
                   style={{ background: "var(--gold-glow)", color: "var(--background-deep)" }}
                 >
                   you

@@ -92,7 +92,7 @@ export function PlayerGrid({
                 {p.displayName}
               </span>
               {isMe && (
-                <span className="-mt-0.5 text-[9px] font-semibold uppercase tracking-wide leading-none text-accent-bright">
+                <span className="-mt-0.5 text-[11px] font-semibold uppercase tracking-wide leading-none text-accent-bright">
                   you
                 </span>
               )}
