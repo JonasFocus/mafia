@@ -141,6 +141,21 @@ export async function deleteGame(gameId: string) {
   if (error) throw error;
 }
 
+/** Remove the current player's own membership from a game (leaving the lobby). */
+export async function leaveGame(gameId: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  const { error } = await supabase
+    .from("game_players")
+    .delete()
+    .eq("game_id", gameId)
+    .eq("user_id", user.id);
+  if (error) throw error;
+}
+
 export async function giveHint(roundId: string, playerId: string) {
   const supabase = createClient();
   const { error } = await supabase.from("hints_given").insert({ round_id: roundId, player_id: playerId });

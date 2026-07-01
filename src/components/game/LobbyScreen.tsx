@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Stepper } from "@/components/ui/Stepper";
 import { Toggle } from "@/components/ui/Toggle";
-import { startGame, startMafiaGame, updateGameSettings, deleteGame } from "@/lib/game/actions";
+import { startGame, startMafiaGame, updateGameSettings, deleteGame, leaveGame } from "@/lib/game/actions";
 import type { Game, GameMode, PlayerView } from "@/lib/game/types";
 
 export function LobbyScreen({
@@ -58,12 +58,20 @@ export function LobbyScreen({
     }
   }
 
-  async function handleEndGame() {
+  async function handleLeave() {
+    setError(null);
     try {
-      await deleteGame(game.id);
+      if (isHost) await deleteGame(game.id);
+      else await leaveGame(game.id);
       router.push("/");
     } catch (err) {
-      setSettingsError(err instanceof Error ? err.message : "Could not end the game");
+      setError(
+        err instanceof Error
+          ? err.message
+          : isHost
+            ? "Could not end the game"
+            : "Could not leave the game",
+      );
     }
   }
 
@@ -222,6 +230,14 @@ export function LobbyScreen({
       ) : (
         <p className="relative text-sm text-foreground-muted">Waiting for the host to start…</p>
       )}
+
+      <button
+        type="button"
+        onClick={handleLeave}
+        className="relative mt-1 rounded-full px-3 py-1 text-sm font-medium text-foreground-muted outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      >
+        {isHost ? "End game" : "Leave game"}
+      </button>
       </div>
 
       {isHost && (
@@ -263,12 +279,6 @@ export function LobbyScreen({
             <Button onClick={() => setSettingsOpen(false)} className="w-full">
               Save
             </Button>
-
-            {isMafia && (
-              <Button onClick={handleEndGame} variant="ghost" className="w-full">
-                End game
-              </Button>
-            )}
           </div>
         </BottomSheet>
       )}
