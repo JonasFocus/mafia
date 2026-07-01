@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 
 const CIVILIAN_COLORS = ["#8ff0c4", "#f3cd7e", "#8b7bff", "#7ec8f3", "#a99cff"];
@@ -20,6 +20,16 @@ function makePieces(colors: string[]) {
 
 export function Confetti({ variant = "civilian" }: { variant?: "civilian" | "mafia" }) {
   const pieces = useMemo(() => makePieces(variant === "mafia" ? MAFIA_COLORS : CIVILIAN_COLORS), [variant]);
+  const [done, setDone] = useState(false);
+
+  // The longest piece lands by ~3.8s; unmount the 26 nodes after that so they
+  // don't linger in the DOM for the rest of the results screen.
+  useEffect(() => {
+    const t = setTimeout(() => setDone(true), 4000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (done) return null;
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
