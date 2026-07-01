@@ -9,7 +9,8 @@ export function ChipDrop({ index, playerCount }: { index: number; playerCount: n
   const col = index % columns;
   const row = Math.floor(index / columns);
   const originX = `calc(${(col + 0.5) * (100 / columns)}% - 50%)`;
-  const originY = row * 96;
+  // Row pitch of the PlayerGrid (cell + gap); names can wrap to two lines.
+  const originY = row * 128;
 
   return (
     <motion.div
