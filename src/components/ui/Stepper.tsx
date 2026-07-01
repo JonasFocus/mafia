@@ -59,9 +59,11 @@ export function Stepper({
           );
         })}
       </div>
-      {disabledCaption && segments.some((o) => o > max) && (
-        <span className="text-xs text-foreground-muted text-center">
-          {disabledCaption(Math.min(...segments.filter((o) => o > max)))}
+      {disabledCaption && (
+        <span className="block min-h-4 text-center text-xs text-foreground-muted">
+          {segments.some((o) => o > max)
+            ? disabledCaption(Math.min(...segments.filter((o) => o > max)))
+            : ""}
         </span>
       )}
     </div>
