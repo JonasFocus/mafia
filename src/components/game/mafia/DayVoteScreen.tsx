@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PlayerGrid } from "@/components/game/PlayerGrid";
 import { Button } from "@/components/ui/Button";
@@ -29,6 +29,7 @@ export function DayVoteScreen({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [chipDrop, setChipDrop] = useState(false);
+  const submittingRef = useRef(false);
 
   const votable = useMemo(
     () => players.filter((p) => !p.isEliminated).map(toPlayerView),
@@ -36,7 +37,8 @@ export function DayVoteScreen({
   );
 
   async function handleVote() {
-    if (!selected) return;
+    if (!selected || submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setError(null);
     setChipDrop(true);
@@ -46,6 +48,7 @@ export function DayVoteScreen({
       setError(err instanceof Error ? err.message : "Could not cast vote");
       setSubmitting(false);
       setChipDrop(false);
+      submittingRef.current = false;
     }
   }
 

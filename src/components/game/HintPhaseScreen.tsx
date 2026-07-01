@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { RoleCard } from "./RoleCard";
 import { PlayerGrid } from "./PlayerGrid";
@@ -29,6 +29,7 @@ export function HintPhaseScreen({
   showCategories: boolean;
 }) {
   const [submitting, setSubmitting] = useState(false);
+  const submittingRef = useRef(false);
   const alreadyHinted = hintedIds.includes(userId);
 
   const turnOrder = round.hint_order
@@ -37,11 +38,14 @@ export function HintPhaseScreen({
   const currentTurn = turnOrder.find((p) => !hintedIds.includes(p.userId));
 
   async function handleGiveHint() {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     try {
       await giveHint(round.id, userId);
     } finally {
       setSubmitting(false);
+      submittingRef.current = false;
     }
   }
 

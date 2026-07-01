@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PlayerGrid } from "./PlayerGrid";
 import { Avatar } from "@/components/ui/Avatar";
@@ -25,6 +25,7 @@ export function VotingScreen({
   const [error, setError] = useState<string | null>(null);
   const [votedIds, setVotedIds] = useState<string[]>([]);
   const [chipDrop, setChipDrop] = useState(false);
+  const submittingRef = useRef(false);
 
   const votable = players.filter((p) => !p.isEliminated);
 
@@ -58,7 +59,8 @@ export function VotingScreen({
   const voteFraction = totalCount > 0 ? votedCount / totalCount : 0;
 
   async function handleVote() {
-    if (!selected) return;
+    if (!selected || submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setError(null);
     setChipDrop(true);
@@ -68,6 +70,7 @@ export function VotingScreen({
       setError(err instanceof Error ? err.message : "Could not cast vote");
       setSubmitting(false);
       setChipDrop(false);
+      submittingRef.current = false;
     }
   }
 
