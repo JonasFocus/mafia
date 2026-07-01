@@ -41,6 +41,16 @@ export function PlayerGrid({
             <motion.button
               key={p.userId}
               type="button"
+              aria-label={[
+                p.displayName,
+                isMe && "you",
+                isHost && "host",
+                hasHinted && "ready",
+                isSelected && "selected",
+                p.isEliminated && "out",
+              ]
+                .filter(Boolean)
+                .join(", ")}
               layout
               disabled={!selectable}
               initial={{ opacity: 0, scale: 0.5, y: 14 }}
@@ -75,6 +85,7 @@ export function PlayerGrid({
                 </motion.div>
                 {hasHinted && (
                   <span
+                    aria-hidden="true"
                     className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
                     style={{ background: "var(--civilian-glow)", color: "var(--background)", boxShadow: "var(--elevation-2)" }}
                   >
@@ -83,6 +94,7 @@ export function PlayerGrid({
                 )}
                 {isSelected && (
                   <span
+                    aria-hidden="true"
                     className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
                     style={{ background: "var(--accent)", color: "var(--accent-foreground)", boxShadow: "var(--elevation-2)" }}
                   >

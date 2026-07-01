@@ -72,6 +72,7 @@ export function Avatar({
       {initial}
       {isHost && (
         <span
+          aria-hidden="true"
           className="absolute -bottom-1 -left-1 flex items-center justify-center rounded-full font-display font-bold"
           style={{
             width: size * 0.4,
