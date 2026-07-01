@@ -20,7 +20,7 @@ export function Stepper({
   /** Caption shown under disabled segments, e.g. "Need 5+ players". */
   disabledCaption?: (option: number) => string;
 }) {
-  const segments = options ?? Array.from({ length: 3 - min + 1 }, (_, i) => min + i);
+  const segments = options ?? Array.from({ length: Math.max(0, max - min + 1) }, (_, i) => min + i);
 
   return (
     <div className="flex flex-col gap-1.5">
