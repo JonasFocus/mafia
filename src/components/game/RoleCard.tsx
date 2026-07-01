@@ -35,9 +35,8 @@ export function RoleCard({
       {/* directional spotlight, offset top-left — static, not a sweep, cheap on mobile GPUs */}
       <motion.div
         className="pointer-events-none absolute -inset-x-4 -top-10 h-64 rounded-full blur-3xl"
-        animate={{
-          background: `radial-gradient(circle at 30% 20%, ${flipped ? `${glow}4d` : `${glow}1f`}, transparent 70%)`,
-        }}
+        style={{ background: `radial-gradient(circle at 30% 20%, color-mix(in srgb, ${glow} 30%, transparent), transparent 70%)` }}
+        animate={{ opacity: flipped ? 1 : 0.4 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       />
 
