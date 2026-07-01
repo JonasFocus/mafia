@@ -22,6 +22,7 @@ export default function HomePage() {
   const [games, setGames] = useState<OpenGame[] | null>(null); // null while first load is pending
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pendingCode, setPendingCode] = useState<string | null>(null);
+  const [pendingHost, setPendingHost] = useState<string | null>(null);
   const [nameDraft, setNameDraft] = useState("");
   const [joiningCode, setJoiningCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -79,17 +80,18 @@ export default function HomePage() {
     }
   }
 
-  function handleCardTap(code: string) {
+  function handleCardTap(g: OpenGame) {
     if (joiningCode) return;
     vibrate();
     const stored = getStoredName().trim();
     if (!stored) {
-      setPendingCode(code);
+      setPendingCode(g.room_code);
+      setPendingHost(g.host_name);
       setError(null);
       setSheetOpen(true);
       return;
     }
-    void doJoin(code, stored);
+    void doJoin(g.room_code, stored);
   }
 
   function handleSheetSubmit() {
@@ -192,7 +194,7 @@ export default function HomePage() {
                 <motion.button
                   key={g.room_code}
                   type="button"
-                  onClick={() => handleCardTap(g.room_code)}
+                  onClick={() => handleCardTap(g)}
                   disabled={joiningCode !== null}
                   whileTap={joiningCode ? undefined : { scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
@@ -238,7 +240,9 @@ export default function HomePage() {
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <h3 className="font-display text-xl font-bold">What&rsquo;s your name?</h3>
-            <p className="text-sm text-foreground-muted">So the table knows who just sat down.</p>
+            <p className="text-sm text-foreground-muted">
+              {pendingHost ? `Joining ${pendingHost}’s game.` : "So the table knows who just sat down."}
+            </p>
           </div>
           <input
             value={nameDraft}
