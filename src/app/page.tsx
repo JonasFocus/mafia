@@ -228,7 +228,7 @@ export default function HomePage() {
         <Link
           href="/join"
           onClick={vibrate}
-          className="mt-4 shrink-0 rounded text-center text-sm text-foreground-muted outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="mt-4 shrink-0 rounded text-center text-sm text-foreground-muted outline-none transition-colors hover:text-foreground active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent"
         >
           Got a room code? <span className="font-semibold text-accent-bright">Enter it</span>
         </Link>
