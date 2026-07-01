@@ -11,6 +11,7 @@ export function useGame(roomCode: string) {
   const [players, setPlayers] = useState<PlayerView[]>([]);
   const [round, setRound] = useState<Round | null>(null);
   const [hintedPlayerIds, setHintedPlayerIds] = useState<string[]>([]);
+  const [votedPlayerIds, setVotedPlayerIds] = useState<string[]>([]);
   const [myVoteCast, setMyVoteCast] = useState(false);
   const [wordText, setWordText] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -54,24 +55,22 @@ export function useGame(roomCode: string) {
       setRound(roundRow);
       if (!roundRow) {
         setHintedPlayerIds([]);
+        setVotedPlayerIds([]);
         setMyVoteCast(false);
         return;
       }
-      const { data: hints } = await supabase.from("hints_given").select("player_id").eq("round_id", roundRow.id);
+      const [{ data: hints }, { data: voterIds }] = await Promise.all([
+        supabase.from("hints_given").select("player_id").eq("round_id", roundRow.id),
+        // votes RLS hides other ballots; this definer RPC returns voter ids only
+        supabase.rpc("round_voter_ids", { p_round_id: roundRow.id }),
+      ]);
       setHintedPlayerIds(hints?.map((h) => h.player_id) ?? []);
+      setVotedPlayerIds(voterIds ?? []);
 
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (user) {
-        const { data: myVote } = await supabase
-          .from("votes")
-          .select("id")
-          .eq("round_id", roundRow.id)
-          .eq("voter_id", user.id)
-          .maybeSingle();
-        setMyVoteCast(!!myVote);
-      }
+      if (user) setMyVoteCast((voterIds ?? []).includes(user.id));
     },
     [supabase],
   );
@@ -146,10 +145,9 @@ export function useGame(roomCode: string) {
       .on("postgres_changes", { event: "*", schema: "public", table: "rounds", filter: `game_id=eq.${gameId}` }, () =>
         refetchRound(gameId),
       )
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "hints_given" }, () =>
-        refetchRound(gameId),
-      )
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "votes" }, () => refetchRound(gameId))
+      // hint/vote inserts touch games.updated_at server-side, so the filtered
+      // games listener above drives round-progress refetches — no unscoped
+      // listeners (votes RLS wouldn't deliver other ballots anyway)
       .subscribe();
 
     return () => {
@@ -158,5 +156,5 @@ export function useGame(roomCode: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game?.id]);
 
-  return { userId, game, players, round, hintedPlayerIds, myVoteCast, wordText, loading, error };
+  return { userId, game, players, round, hintedPlayerIds, votedPlayerIds, myVoteCast, wordText, loading, error };
 }

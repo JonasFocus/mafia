@@ -12,7 +12,7 @@ import { MafiaGame } from "@/components/game/mafia/MafiaGame";
 
 export default function GamePage({ params }: { params: Promise<{ roomCode: string }> }) {
   const { roomCode } = use(params);
-  const { userId, game, players, round, hintedPlayerIds, myVoteCast, wordText, loading, error } =
+  const { userId, game, players, round, hintedPlayerIds, votedPlayerIds, myVoteCast, wordText, loading, error } =
     useGame(roomCode);
   const [categoryName, setCategoryName] = useState("");
 
@@ -90,7 +90,13 @@ export default function GamePage({ params }: { params: Promise<{ roomCode: strin
           )}
 
           {game.status === "voting" && round && (
-            <VotingScreen userId={userId} players={players} round={round} myVoteCast={myVoteCast} />
+            <VotingScreen
+              userId={userId}
+              players={players}
+              round={round}
+              votedIds={votedPlayerIds}
+              myVoteCast={myVoteCast}
+            />
           )}
 
           {game.status === "round_result" && (

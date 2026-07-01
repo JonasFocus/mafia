@@ -1,57 +1,32 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PlayerGrid } from "./PlayerGrid";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { castVote } from "@/lib/game/actions";
-import { createClient } from "@/lib/supabase/client";
 import type { PlayerView, Round } from "@/lib/game/types";
 
 export function VotingScreen({
   userId,
   players,
   round,
+  votedIds,
   myVoteCast,
 }: {
   userId: string;
   players: PlayerView[];
   round: Round;
+  votedIds: string[];
   myVoteCast: boolean;
 }) {
   const [selected, setSelected] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [votedIds, setVotedIds] = useState<string[]>([]);
   const [chipDrop, setChipDrop] = useState(false);
 
   const votable = players.filter((p) => !p.isEliminated);
-
-  useEffect(() => {
-    const supabase = createClient();
-    let cancelled = false;
-
-    async function refetchVoters() {
-      const { data } = await supabase.from("votes").select("voter_id").eq("round_id", round.id);
-      if (!cancelled) setVotedIds(data?.map((v) => v.voter_id) ?? []);
-    }
-    refetchVoters();
-
-    const channel = supabase
-      .channel(`votes:${round.id}`)
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "votes", filter: `round_id=eq.${round.id}` },
-        () => refetchVoters(),
-      )
-      .subscribe();
-
-    return () => {
-      cancelled = true;
-      supabase.removeChannel(channel);
-    };
-  }, [round.id]);
 
   const votedCount = votedIds.length;
   const totalCount = votable.length;

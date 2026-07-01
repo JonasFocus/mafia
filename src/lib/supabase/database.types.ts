@@ -503,6 +503,7 @@ export type Database = {
       }
       resolve_day: { Args: { p_game_id: string }; Returns: undefined }
       resolve_night: { Args: { p_game_id: string }; Returns: undefined }
+      round_voter_ids: { Args: { p_round_id: string }; Returns: string[] }
       start_game: { Args: { p_game_id: string }; Returns: undefined }
       start_mafia_game: { Args: { p_game_id: string }; Returns: undefined }
       submit_night_action: {
