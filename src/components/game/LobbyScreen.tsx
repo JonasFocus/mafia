@@ -138,8 +138,8 @@ export function LobbyScreen({
           transition={{ type: "spring", stiffness: 400, damping: 25 }}
           className="absolute right-4 top-4 z-10 flex items-center justify-center rounded-2xl"
           style={{
-            width: 40,
-            height: 40,
+            width: 44,
+            height: 44,
             background: "linear-gradient(180deg, var(--surface-raised), var(--surface))",
             boxShadow: "var(--elevation-2)",
           }}
