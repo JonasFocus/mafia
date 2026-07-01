@@ -41,9 +41,11 @@ export function RoleCard({
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       />
 
-      <div
+      <button
+        type="button"
         onClick={handleTap}
-        className="relative aspect-[3/4] select-none cursor-pointer"
+        aria-label={isOutsider ? "Reveal your role" : "Reveal your secret word"}
+        className="relative block w-full aspect-[3/4] select-none cursor-pointer appearance-none rounded-[32px] outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         style={{ perspective: 1400 }}
       >
         <motion.div
@@ -84,6 +86,8 @@ export function RoleCard({
 
           {/* face-up */}
           <div
+            role="status"
+            aria-live="polite"
             className="absolute inset-0 rounded-[32px] flex flex-col items-center justify-center gap-3 px-7 text-center overflow-hidden"
             style={{
               backfaceVisibility: "hidden",
@@ -132,7 +136,7 @@ export function RoleCard({
             </AnimatePresence>
           </div>
         </motion.div>
-      </div>
+      </button>
     </div>
   );
 }
