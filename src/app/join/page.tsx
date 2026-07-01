@@ -78,7 +78,7 @@ export default function JoinPage() {
               autoCorrect="off"
               spellCheck={false}
               className="h-16 rounded-2xl bg-surface px-4 text-3xl tracking-[0.35em] text-center font-display font-semibold outline-none focus:ring-2 focus:ring-accent transition-shadow"
-              style={{ boxShadow: "var(--elevation-1)" }}
+              style={{ boxShadow: "var(--elevation-1)", textIndent: "0.35em" }}
               autoFocus
             />
           </div>
