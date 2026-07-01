@@ -62,7 +62,7 @@ export function PlayerGrid({
                 >
                   <Avatar
                     name={p.displayName}
-                    index={i}
+                    index={p.joinOrder}
                     size={56}
                     dimmed={p.isEliminated}
                     variant={isActive ? "active" : undefined}

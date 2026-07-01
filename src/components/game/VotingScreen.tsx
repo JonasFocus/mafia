@@ -141,11 +141,11 @@ function VoteCounterCard({
         <p className="text-sm text-foreground-muted">Waiting for everyone else to lock in their vote…</p>
       )}
       <div className="flex flex-wrap items-center justify-center gap-2">
-        {players.map((p, i) => {
+        {players.map((p) => {
           const hasVoted = votedSet.has(p.userId);
           return (
             <div key={p.userId} className="relative">
-              <Avatar name={p.displayName} index={i} size={36} dimmed={!hasVoted} />
+              <Avatar name={p.displayName} index={p.joinOrder} size={36} dimmed={!hasVoted} />
               {hasVoted && (
                 <span
                   className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold"

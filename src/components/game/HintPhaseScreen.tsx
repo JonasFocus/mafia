@@ -93,7 +93,7 @@ function TurnOrderRail({
         }}
       />
       <div className="relative flex items-center justify-between gap-1 overflow-x-auto no-scrollbar px-1">
-        {turnOrder.map((p, i) => {
+        {turnOrder.map((p) => {
           const done = hintedIds.includes(p.userId);
           const isCurrent = p.userId === currentUserId;
           const variant = done ? undefined : isCurrent ? "active" : "neutral";
@@ -113,7 +113,7 @@ function TurnOrderRail({
               >
                 <Avatar
                   name={p.displayName}
-                  index={i}
+                  index={p.joinOrder}
                   size={32}
                   variant={variant}
                   dimmed={!done && !isCurrent}

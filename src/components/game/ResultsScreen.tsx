@@ -50,7 +50,7 @@ export function ResultsScreen({
       </div>
 
       <div className="w-full flex flex-col gap-2">
-        {players.map((p, i) => (
+        {players.map((p) => (
           <div
             key={p.userId}
             className="flex items-center gap-3 rounded-2xl px-4 h-16"
@@ -58,7 +58,7 @@ export function ResultsScreen({
           >
             <Avatar
               name={p.displayName}
-              index={i}
+              index={p.joinOrder}
               size={40}
               variant={p.isOutsider ? "mafia" : "civilian"}
             />
