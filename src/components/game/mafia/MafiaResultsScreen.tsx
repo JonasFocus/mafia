@@ -63,7 +63,7 @@ export function MafiaResultsScreen({
                 style={{
                   background: "var(--surface)",
                   boxShadow: "var(--elevation-2)",
-                  opacity: p.isEliminated ? 0.62 : 1,
+                  opacity: p.isEliminated ? 0.78 : 1,
                 }}
               >
                 <Avatar
@@ -80,7 +80,7 @@ export function MafiaResultsScreen({
                     {p.displayName}
                   </span>
                   <span className="text-[11px] text-foreground-muted">
-                    {p.isEliminated ? "Killed" : "Survived"}
+                    {p.isEliminated ? "Out" : "Survived"}
                   </span>
                 </div>
                 <span
