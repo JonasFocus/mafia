@@ -125,10 +125,7 @@ export function LobbyScreen({
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
-      <div
-        className="spotlight-pulse pointer-events-none absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full blur-3xl"
-        style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--accent) 40%, transparent), transparent 70%)" }}
-      />
+      <div className="spotlight-pulse spotlight-accent pointer-events-none absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full blur-3xl" />
 
       {isHost && (
         <motion.button

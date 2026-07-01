@@ -118,6 +118,12 @@ body::before {
   animation: spotlight-pulse 4.5s ease-in-out infinite;
 }
 
+/* Shared accent spotlight glow (home hero, lobby) — one source of truth instead
+   of a bespoke radial-gradient per screen. */
+.spotlight-accent {
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent), transparent 70%);
+}
+
 @keyframes pop-in {
   from { opacity: 0; transform: scale(0.92) translateY(6px); }
   to { opacity: 1; transform: scale(1) translateY(0); }

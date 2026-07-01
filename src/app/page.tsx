@@ -108,10 +108,7 @@ export default function HomePage() {
       transition={{ duration: 0.7, ease: "easeOut" }}
       className="relative flex flex-1 flex-col px-6 pt-12 pb-6 safe-top safe-bottom overflow-hidden"
     >
-      <div
-        className="spotlight-pulse pointer-events-none absolute -top-32 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full blur-3xl"
-        style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent), transparent 70%)" }}
-      />
+      <div className="spotlight-pulse spotlight-accent pointer-events-none absolute -top-32 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full blur-3xl" />
 
       <div className="relative w-full max-w-sm mx-auto flex flex-col items-center text-center gap-3 mb-7">
         <div
