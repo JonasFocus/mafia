@@ -24,8 +24,8 @@ export function RoleCard({
     setFlipped(true);
     setTimeout(() => {
       setFlipped(false);
-      setTimeout(() => setLocked(false), 600);
-    }, 2200);
+      setTimeout(() => setLocked(false), 300);
+    }, 3500);
   }
 
   const glow = isOutsider ? "var(--outsider-glow)" : "var(--civilian-glow)";

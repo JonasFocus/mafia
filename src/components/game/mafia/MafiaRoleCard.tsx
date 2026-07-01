@@ -30,8 +30,8 @@ export function MafiaRoleCard({
     setFlipped(true);
     setTimeout(() => {
       setFlipped(false);
-      setTimeout(() => setLocked(false), 600);
-    }, 2600);
+      setTimeout(() => setLocked(false), 300);
+    }, 4000);
   }
 
   const isMafia = role === "mafia";
