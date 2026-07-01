@@ -32,6 +32,7 @@ export function LobbyScreen({
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [mafiaCountOverride, setMafiaCountOverride] = useState<number | null>(null);
   const [showCategoriesOverride, setShowCategoriesOverride] = useState<boolean | null>(null);
@@ -70,6 +71,22 @@ export function LobbyScreen({
     navigator.clipboard?.writeText(game.room_code).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
+    });
+  }
+
+  async function handleShare() {
+    const url = `${window.location.origin}/join?code=${game.room_code}`;
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({ title: "Join my Mafia game", text: `Join my game — room code ${game.room_code}`, url });
+        return;
+      } catch {
+        // user cancelled or share unavailable — fall back to copying the link
+      }
+    }
+    navigator.clipboard?.writeText(url).then(() => {
+      setShared(true);
+      setTimeout(() => setShared(false), 1500);
     });
   }
 
@@ -159,6 +176,21 @@ export function LobbyScreen({
             {categoryName}
           </span>
         )}
+      </motion.button>
+
+      <motion.button
+        onClick={handleShare}
+        whileTap={{ scale: 0.97, y: 1 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
+        className="flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        style={{ background: "var(--surface-raised)", boxShadow: "var(--elevation-2)" }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+          <polyline points="16 6 12 2 8 6" />
+          <line x1="12" y1="2" x2="12" y2="15" />
+        </svg>
+        {shared ? "Link copied!" : "Invite players"}
       </motion.button>
 
       <div className="relative w-full flex-1">

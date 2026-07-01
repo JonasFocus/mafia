@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ensureGuestSession, getStoredName, setStoredName } from "@/lib/game/auth";
@@ -9,10 +9,26 @@ import { Button } from "@/components/ui/Button";
 
 export default function JoinPage() {
   const router = useRouter();
-  const [name, setName] = useState(() => getStoredName());
+  const [name, setName] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const nameRef = useRef<HTMLInputElement>(null);
+
+  // Prefill from localStorage + a shared /join?code=XXXX link on mount (not in
+  // useState) so SSR and client markup stay identical (no hydration mismatch).
+  useEffect(() => {
+    const stored = getStoredName();
+    const code = new URLSearchParams(window.location.search).get("code")?.toUpperCase().slice(0, 4);
+    /* eslint-disable react-hooks/set-state-in-effect -- one-time mount prefill from
+       localStorage / URL, an intentional sync rather than a render cascade. */
+    if (stored) setName(stored);
+    if (code) {
+      setRoomCode(code);
+      nameRef.current?.focus();
+    }
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
 
   async function handleJoin(e: React.FormEvent) {
     e.preventDefault();
@@ -70,6 +86,7 @@ export default function JoinPage() {
             </label>
             <input
               id="name"
+              ref={nameRef}
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={20}

@@ -14,7 +14,7 @@ import type { GameMode } from "@/lib/game/types";
 
 export default function HostPage() {
   const router = useRouter();
-  const [name, setName] = useState(() => getStoredName());
+  const [name, setName] = useState("");
   const [mode, setMode] = useState<GameMode>("chameleon");
   const [categories, setCategories] = useState<Tables<"categories">[]>([]);
   const [categoryId, setCategoryId] = useState<string>("");
@@ -22,6 +22,14 @@ export default function HostPage() {
   const [error, setError] = useState<string | null>(null);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState(false);
+
+  // Prefill the name from localStorage on mount (not in useState) so SSR and
+  // client markup match — avoids a hydration mismatch.
+  useEffect(() => {
+    const stored = getStoredName();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (stored) setName(stored);
+  }, []);
 
   useEffect(() => {
     createClient()

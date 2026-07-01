@@ -22,9 +22,17 @@ export default function HomePage() {
   const [games, setGames] = useState<OpenGame[] | null>(null); // null while first load is pending
   const [sheetOpen, setSheetOpen] = useState(false);
   const [pendingCode, setPendingCode] = useState<string | null>(null);
-  const [nameDraft, setNameDraft] = useState(() => getStoredName());
+  const [nameDraft, setNameDraft] = useState("");
   const [joiningCode, setJoiningCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Prefill the remembered name on mount (not in useState) so SSR/client markup
+  // match — avoids a hydration mismatch.
+  useEffect(() => {
+    const stored = getStoredName();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (stored) setNameDraft(stored);
+  }, []);
 
   useEffect(() => {
     // The list is a public SECURITY DEFINER RPC (RLS filters realtime for
