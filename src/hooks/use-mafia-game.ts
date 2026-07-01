@@ -147,9 +147,18 @@ export function useMafiaGame(roomCode: string) {
         { event: "*", schema: "public", table: "day_votes", filter: `game_id=eq.${gameId}` },
         () => refetchDayVotes(gameId, roundRef.current),
       )
-      .subscribe();
+      .subscribe((status) => {
+        // On (re)connect, catch up on anything missed while the socket was down.
+        if (status === "SUBSCRIBED") refetchGame(gameId);
+      });
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refetchGame(gameId);
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
+      document.removeEventListener("visibilitychange", onVisible);
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

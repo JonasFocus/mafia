@@ -162,9 +162,18 @@ export function useGame(roomCode: string) {
         refetchRound(gameId),
       )
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "votes" }, () => refetchRound(gameId))
-      .subscribe();
+      .subscribe((status) => {
+        // On (re)connect, catch up on anything missed while the socket was down.
+        if (status === "SUBSCRIBED") refetchGame(gameId);
+      });
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refetchGame(gameId);
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
+      document.removeEventListener("visibilitychange", onVisible);
       supabase.removeChannel(channel);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
