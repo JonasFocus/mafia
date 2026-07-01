@@ -24,13 +24,14 @@ export function useMafiaGame(roomCode: string) {
         supabase.auth.getUser(),
       ]);
       if (!playerRows) return;
-      const ids = playerRows.map((p) => p.user_id!).filter(Boolean);
+      const rows = playerRows.filter((p): p is typeof p & { user_id: string } => p.user_id !== null);
+      const ids = rows.map((p) => p.user_id);
       const { data: userRows } = await supabase.from("users").select("id, display_name").in("id", ids);
       const nameById = new Map(userRows?.map((u) => [u.id, u.display_name]) ?? []);
       setPlayers(
-        playerRows.map((p) => ({
-          userId: p.user_id!,
-          displayName: nameById.get(p.user_id!) ?? "Player",
+        rows.map((p) => ({
+          userId: p.user_id,
+          displayName: nameById.get(p.user_id) ?? "Player",
           isEliminated: !!p.is_eliminated,
           role: p.role,
           joinOrder: p.join_order ?? 0,
@@ -72,7 +73,14 @@ export function useMafiaGame(roomCode: string) {
         setError(gErr.message);
         return;
       }
-      if (!g) return;
+      if (!g) {
+        // The game row was deleted out from under us (host ended the game).
+        if (gameIdRef.current) {
+          setGame(null);
+          setError("This game has ended");
+        }
+        return;
+      }
       setGame(g);
       roundRef.current = g.current_round;
       await Promise.all([
@@ -95,7 +103,12 @@ export function useMafiaGame(roomCode: string) {
         .eq("room_code", roomCode.toUpperCase())
         .maybeSingle();
       if (cancelled) return;
-      if (gErr || !g) {
+      if (gErr) {
+        setError("Couldn’t load the game. Check your connection and try again.");
+        setLoading(false);
+        return;
+      }
+      if (!g) {
         setError("Room not found");
         setLoading(false);
         return;
@@ -135,13 +148,31 @@ export function useMafiaGame(roomCode: string) {
         { event: "*", schema: "public", table: "day_votes", filter: `game_id=eq.${gameId}` },
         () => refetchDayVotes(gameId, roundRef.current),
       )
-      .subscribe();
+      .subscribe((status) => {
+        // On (re)connect, catch up on anything missed while the socket was down.
+        if (status === "SUBSCRIBED") refetchGame(gameId);
+      });
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refetchGame(gameId);
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
+      document.removeEventListener("visibilitychange", onVisible);
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game?.id]);
+  }, [game?.id, supabase, refetchGame, refetchPlayers, refetchNightActions, refetchDayVotes]);
+
+  // Lobby membership can't stream over realtime (game_players RLS is own-row-only),
+  // so poll the security-definer player list while in the lobby to keep the roster
+  // and Start button current as people join.
+  useEffect(() => {
+    if (game?.status !== "lobby" || !game?.id) return;
+    const gameId = game.id;
+    const interval = setInterval(() => refetchPlayers(gameId), 2500);
+    return () => clearInterval(interval);
+  }, [game?.status, game?.id, refetchPlayers]);
 
   const me = players.find((p) => p.userId === userId);
   const myRole: PlayerRole | null = me?.role ?? null;
@@ -168,7 +199,6 @@ export function useMafiaGame(roomCode: string) {
     nightActions,
     myNightAction,
     myInspectResult,
-    dayVotes,
     myDayVoteCast,
     loading,
     error,

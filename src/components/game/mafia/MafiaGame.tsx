@@ -3,6 +3,9 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useMafiaGame } from "@/hooks/use-mafia-game";
 import { LobbyScreen } from "@/components/game/LobbyScreen";
+import { PlayerGrid } from "@/components/game/PlayerGrid";
+import { GameErrorScreen } from "@/components/game/GameErrorScreen";
+import { HostSkipButton } from "@/components/game/HostSkipButton";
 import { MafiaRoleReveal } from "./MafiaRoleReveal";
 import { NightScreen } from "./NightScreen";
 import { DayResultScreen } from "./DayResultScreen";
@@ -10,11 +13,18 @@ import { DayVoteScreen } from "./DayVoteScreen";
 import { MafiaResultsScreen } from "./MafiaResultsScreen";
 import { beginNight, beginDayVote, submitNightAction, castDayVote } from "@/lib/game/actions";
 import { toPlayerView } from "./shared";
-import type { NightActionType } from "@/lib/game/types";
+import type { NightActionType, MafiaPlayerView } from "@/lib/game/types";
 
-export function MafiaGame({ roomCode }: { roomCode: string }) {
+export function MafiaGame({
+  roomCode,
+  userId,
+  isHost,
+}: {
+  roomCode: string;
+  userId: string;
+  isHost: boolean;
+}) {
   const {
-    userId,
     game,
     players,
     me,
@@ -41,15 +51,9 @@ export function MafiaGame({ roomCode }: { roomCode: string }) {
     );
   }
 
-  if (error || !game || !userId) {
-    return (
-      <main className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center safe-top safe-bottom">
-        <p className="text-foreground-muted">{error ?? "Something went wrong"}</p>
-      </main>
-    );
+  if (error || !game) {
+    return <GameErrorScreen error={error ?? "Something went wrong"} />;
   }
-
-  const isHost = game.host_id === userId;
 
   return (
     <main className="flex flex-1 flex-col">
@@ -85,22 +89,27 @@ export function MafiaGame({ roomCode }: { roomCode: string }) {
             />
           )}
 
-          {game.status === "night" && me && myRole && (
-            <NightScreen
-              game={game}
-              players={players}
-              me={me}
-              myRole={myRole}
-              fellowMafia={fellowMafia}
-              nightActions={nightActions}
-              myNightAction={myNightAction}
-              myInspectResult={myInspectResult}
-              userId={userId}
-              onSubmit={(actionType: NightActionType, targetId: string) =>
-                submitNightAction(game.id, actionType, targetId)
-              }
-            />
-          )}
+          {game.status === "night" &&
+            me &&
+            myRole &&
+            (me.isEliminated ? (
+              <MafiaSpectator phase="night" players={players} />
+            ) : (
+              <NightScreen
+                game={game}
+                players={players}
+                me={me}
+                myRole={myRole}
+                fellowMafia={fellowMafia}
+                nightActions={nightActions}
+                myNightAction={myNightAction}
+                myInspectResult={myInspectResult}
+                userId={userId}
+                onSubmit={(actionType: NightActionType, targetId: string) =>
+                  submitNightAction(game.id, actionType, targetId)
+                }
+              />
+            ))}
 
           {game.status === "day_result" && (
             <DayResultScreen
@@ -111,16 +120,20 @@ export function MafiaGame({ roomCode }: { roomCode: string }) {
             />
           )}
 
-          {game.status === "day_vote" && me && (
-            <DayVoteScreen
-              game={game}
-              players={players}
-              me={me}
-              userId={userId}
-              myDayVoteCast={myDayVoteCast}
-              onVote={(targetId: string) => castDayVote(game.id, targetId)}
-            />
-          )}
+          {game.status === "day_vote" &&
+            me &&
+            (me.isEliminated ? (
+              <MafiaSpectator phase="day_vote" players={players} />
+            ) : (
+              <DayVoteScreen
+                game={game}
+                players={players}
+                me={me}
+                userId={userId}
+                myDayVoteCast={myDayVoteCast}
+                onVote={(targetId: string) => castDayVote(game.id, targetId)}
+              />
+            ))}
 
           {game.status === "game_over" && (
             <MafiaResultsScreen
@@ -131,6 +144,40 @@ export function MafiaGame({ roomCode }: { roomCode: string }) {
           )}
         </motion.div>
       </AnimatePresence>
+
+      {isHost && (game.status === "night" || game.status === "day_vote") && (
+        <HostSkipButton gameId={game.id} />
+      )}
     </main>
+  );
+}
+
+/** Read-only view shown to eliminated players during interactive phases. */
+function MafiaSpectator({
+  phase,
+  players,
+}: {
+  phase: "night" | "day_vote";
+  players: MafiaPlayerView[];
+}) {
+  const living = players.filter((p) => !p.isEliminated).map(toPlayerView);
+  return (
+    <div className="relative flex flex-1 flex-col items-center justify-center overflow-y-auto px-6 py-8 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto text-center">
+      <span className="text-4xl">{phase === "night" ? "🌙" : "☀️"}</span>
+      <div className="flex flex-col gap-1">
+        <h2 className="font-display text-2xl font-bold">You&rsquo;re out</h2>
+        <p className="text-sm text-foreground-muted">
+          {phase === "night"
+            ? "The town sleeps. Watch how the night unfolds."
+            : "Watch the town decide who to vote out."}
+        </p>
+      </div>
+      <div className="w-full">
+        <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-foreground-muted">
+          Still in the game
+        </p>
+        <PlayerGrid players={living} />
+      </div>
+    </div>
   );
 }

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import type { GameMode, NightActionType } from "@/lib/game/types";
+import type { Database } from "@/lib/supabase/database.types";
 
 const ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I ambiguity
 
@@ -39,14 +40,30 @@ export async function createGame(
   throw new Error("Could not generate a unique room code, please try again");
 }
 
+// Join by code via a SECURITY DEFINER RPC. A direct client-side select is blocked
+// by RLS for a non-participant (games are readable only by host/existing players),
+// so a first-time joiner would always get "Room not found". The RPC validates
+// existence/status/capacity and inserts the player row atomically. Requires an
+// established session first (ensureGuestSession) so auth.uid() is set.
 export async function joinGame(roomCode: string) {
   const supabase = createClient();
-
-  const { data, error } = await supabase.rpc("join_game", { p_room_code: roomCode.toUpperCase() });
-  if (error) throw error;
+  const { data, error } = await supabase.rpc("join_game", {
+    p_room_code: roomCode.toUpperCase(),
+  });
+  if (error) throw new Error(error.message);
   const game = data?.[0];
   if (!game) throw new Error("Room not found");
   return game;
+}
+
+export type OpenGame = Database["public"]["Functions"]["list_open_games"]["Returns"][number];
+
+/** Public list of open (lobby) games for the home-screen "active games" list. */
+export async function listOpenGames(): Promise<OpenGame[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("list_open_games");
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function startGame(gameId: string) {
@@ -98,6 +115,14 @@ export async function beginDayVote(gameId: string) {
   if (error) throw error;
 }
 
+/** Host-only: resolve the current phase with whatever has been submitted, to
+ * recover from a player who abandoned mid-phase. */
+export async function forceAdvancePhase(gameId: string) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("force_advance_phase", { p_game_id: gameId });
+  if (error) throw new Error(error.message);
+}
+
 export async function submitNightAction(
   gameId: string,
   actionType: NightActionType,
@@ -121,6 +146,21 @@ export async function castDayVote(gameId: string, targetId: string) {
 export async function deleteGame(gameId: string) {
   const supabase = createClient();
   const { error } = await supabase.from("games").delete().eq("id", gameId);
+  if (error) throw error;
+}
+
+/** Remove the current player's own membership from a game (leaving the lobby). */
+export async function leaveGame(gameId: string) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  const { error } = await supabase
+    .from("game_players")
+    .delete()
+    .eq("game_id", gameId)
+    .eq("user_id", user.id);
   if (error) throw error;
 }
 

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { PlayerGrid } from "@/components/game/PlayerGrid";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
-import { toPlayerView, MAFIA_GLOW, TOWN_GLOW } from "./shared";
+import { toPlayerView, roleGlow, MAFIA_GLOW, TOWN_GLOW } from "./shared";
 import type {
   Game,
   MafiaPlayerView,
@@ -170,7 +170,7 @@ function Header({ role }: { role: PlayerRole }) {
       : role === "sheriff"
         ? "Sheriff · Night"
         : "Angel · Night";
-  const glow = role === "mafia" ? MAFIA_GLOW : TOWN_GLOW;
+  const glow = roleGlow(role);
   return (
     <div className="flex flex-col items-center gap-1.5">
       <span
@@ -282,6 +282,8 @@ function InspectResult({
   const glow = isMafia ? MAFIA_GLOW : TOWN_GLOW;
   return (
     <motion.div
+      role="status"
+      aria-live="polite"
       initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 380, damping: 22 }}

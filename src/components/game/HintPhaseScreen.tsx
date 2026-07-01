@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { RoleCard } from "./RoleCard";
 import { PlayerGrid } from "./PlayerGrid";
@@ -30,6 +30,7 @@ export function HintPhaseScreen({
 }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const submittingRef = useRef(false);
   const alreadyHinted = hintedIds.includes(userId);
 
   const turnOrder = round.hint_order
@@ -38,6 +39,8 @@ export function HintPhaseScreen({
   const currentTurn = turnOrder.find((p) => !hintedIds.includes(p.userId));
 
   async function handleGiveHint() {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setError(null);
     try {
@@ -46,14 +49,17 @@ export function HintPhaseScreen({
       setError(err instanceof Error ? err.message : "Could not mark your hint");
     } finally {
       setSubmitting(false);
+      submittingRef.current = false;
     }
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center px-6 py-6 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto">
-      <span className="text-xs tracking-widest uppercase text-foreground-muted">Round {round.round_number}</span>
+    <div className="flex flex-1 flex-col items-center overflow-y-auto px-6 py-6 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto">
+      <span className="shrink-0 text-xs tracking-widest uppercase text-foreground-muted">Round {round.round_number}</span>
 
-      <RoleCard isOutsider={isOutsider} word={word} category={category} showCategory={showCategories} />
+      <div className="w-full shrink-0">
+        <RoleCard isOutsider={isOutsider} word={word} category={category} showCategory={showCategories} />
+      </div>
 
       <TurnOrderRail turnOrder={turnOrder} hintedIds={hintedIds} currentUserId={currentTurn?.userId} />
 
@@ -98,7 +104,7 @@ function TurnOrderRail({
             "linear-gradient(90deg, transparent, var(--surface-border-strong) 8%, var(--surface-border-strong) 92%, transparent)",
         }}
       />
-      <div className="relative flex items-center justify-between gap-1 overflow-x-auto no-scrollbar px-1">
+      <div className="relative flex items-center justify-between gap-1 overflow-x-auto no-scrollbar px-2">
         {turnOrder.map((p) => {
           const done = hintedIds.includes(p.userId);
           const isCurrent = p.userId === currentUserId;

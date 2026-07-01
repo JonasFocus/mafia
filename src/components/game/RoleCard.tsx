@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function RoleCard({
@@ -16,16 +16,21 @@ export function RoleCard({
 }) {
   const [flipped, setFlipped] = useState(false);
   const [locked, setLocked] = useState(false);
+  const timeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => () => timeouts.current.forEach(clearTimeout), []);
 
   function handleTap() {
     if (locked) return;
     if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(12);
     setLocked(true);
     setFlipped(true);
-    setTimeout(() => {
-      setFlipped(false);
-      setTimeout(() => setLocked(false), 600);
-    }, 2200);
+    timeouts.current.push(
+      setTimeout(() => {
+        setFlipped(false);
+        timeouts.current.push(setTimeout(() => setLocked(false), 300));
+      }, 3500),
+    );
   }
 
   const glow = isOutsider ? "var(--outsider-glow)" : "var(--civilian-glow)";
@@ -35,15 +40,16 @@ export function RoleCard({
       {/* directional spotlight, offset top-left — static, not a sweep, cheap on mobile GPUs */}
       <motion.div
         className="pointer-events-none absolute -inset-x-4 -top-10 h-64 rounded-full blur-3xl"
-        animate={{
-          background: `radial-gradient(circle at 30% 20%, ${flipped ? `${glow}4d` : `${glow}1f`}, transparent 70%)`,
-        }}
+        style={{ background: `radial-gradient(circle at 30% 20%, color-mix(in srgb, ${glow} 30%, transparent), transparent 70%)` }}
+        animate={{ opacity: flipped ? 1 : 0.4 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       />
 
-      <div
+      <button
+        type="button"
         onClick={handleTap}
-        className="relative aspect-[3/4] select-none cursor-pointer"
+        aria-label={isOutsider ? "Reveal your role" : "Reveal your secret word"}
+        className="relative block w-full aspect-[3/4] select-none cursor-pointer appearance-none rounded-[32px] outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         style={{ perspective: 1400 }}
       >
         <motion.div
@@ -57,8 +63,9 @@ export function RoleCard({
             className="absolute inset-0 rounded-[32px] flex flex-col items-center justify-center gap-3 overflow-hidden"
             style={{
               backfaceVisibility: "hidden",
-              background: "linear-gradient(155deg, var(--surface-raised), var(--surface))",
-              boxShadow: "var(--elevation-3)",
+              background: "linear-gradient(160deg, var(--surface-overlay), var(--surface-raised) 65%, var(--surface))",
+              boxShadow:
+                "0 22px 45px -14px rgba(0,0,0,0.75), inset 0 0 0 1px var(--surface-border-strong), var(--elevation-3)",
             }}
           >
             <div
@@ -84,6 +91,8 @@ export function RoleCard({
 
           {/* face-up */}
           <div
+            role="status"
+            aria-live="polite"
             className="absolute inset-0 rounded-[32px] flex flex-col items-center justify-center gap-3 px-7 text-center overflow-hidden"
             style={{
               backfaceVisibility: "hidden",
@@ -103,9 +112,16 @@ export function RoleCard({
                   {isOutsider ? (
                     <>
                       {showCategory && (
-                        <span className="text-xs tracking-widest uppercase text-foreground-muted">{category}</span>
+                        <span
+                          className="rounded-full px-3 py-0.5 text-[11px] tracking-wide uppercase text-foreground-muted"
+                          style={{ background: "var(--surface)", boxShadow: "var(--elevation-1)" }}
+                        >
+                          {category}
+                        </span>
                       )}
-                      <span className="text-xs tracking-widest uppercase text-foreground-muted">You are the</span>
+                      <span className="mt-1 text-xs tracking-widest uppercase text-foreground-muted">
+                        You are the
+                      </span>
                       <span
                         className="font-display text-4xl font-bold"
                         style={{ color: glow, textShadow: `0 0 24px ${glow}66` }}
@@ -120,8 +136,12 @@ export function RoleCard({
                     <>
                       <span className="text-xs tracking-widest uppercase text-foreground-muted">{category}</span>
                       <span
-                        className="font-display text-4xl font-bold leading-tight"
-                        style={{ color: glow, textShadow: `0 0 24px ${glow}66` }}
+                        className="font-display font-bold leading-tight break-words max-w-full"
+                        style={{
+                          color: glow,
+                          textShadow: `0 0 24px ${glow}66`,
+                          fontSize: "clamp(1.5rem, 8vw, 2.25rem)",
+                        }}
                       >
                         {word}
                       </span>
@@ -132,7 +152,7 @@ export function RoleCard({
             </AnimatePresence>
           </div>
         </motion.div>
-      </div>
+      </button>
     </div>
   );
 }

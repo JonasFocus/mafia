@@ -22,10 +22,14 @@ export function PlayerGrid({
   /** When set, the matching player's avatar gets the gold host badge. */
   hostUserId?: string;
 }) {
+  if (players.length === 0) {
+    return <p className="py-4 text-center text-sm text-foreground-muted">Waiting for players…</p>;
+  }
+
   return (
     <div className="grid grid-cols-4 gap-3 w-full">
       <AnimatePresence initial={false}>
-        {players.map((p, i) => {
+        {players.map((p) => {
           const isActive = p.userId === activeUserId;
           const isSelected = p.userId === selectedUserId;
           const hasHinted = hintedIds?.includes(p.userId);
@@ -37,6 +41,16 @@ export function PlayerGrid({
             <motion.button
               key={p.userId}
               type="button"
+              aria-label={[
+                p.displayName,
+                isMe && "you",
+                isHost && "host",
+                hasHinted && "ready",
+                isSelected && "selected",
+                p.isEliminated && "out",
+              ]
+                .filter(Boolean)
+                .join(", ")}
               layout
               disabled={!selectable}
               initial={{ opacity: 0, scale: 0.5, y: 14 }}
@@ -53,11 +67,11 @@ export function PlayerGrid({
             >
               <div className="relative">
                 <motion.div
-                  animate={isActive ? { scale: [1, 1.08, 1] } : { scale: [1, 1.015, 1] }}
+                  animate={isActive ? { scale: [1, 1.08, 1] } : { scale: 1 }}
                   transition={
                     isActive
                       ? { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
-                      : { duration: 3.6 + (i % 4) * 0.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.15 }
+                      : { duration: 0.3 }
                   }
                 >
                   <Avatar
@@ -71,6 +85,7 @@ export function PlayerGrid({
                 </motion.div>
                 {hasHinted && (
                   <span
+                    aria-hidden="true"
                     className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
                     style={{ background: "var(--civilian-glow)", color: "var(--background)", boxShadow: "var(--elevation-2)" }}
                   >
@@ -79,6 +94,7 @@ export function PlayerGrid({
                 )}
                 {isSelected && (
                   <span
+                    aria-hidden="true"
                     className="absolute -bottom-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold"
                     style={{ background: "var(--accent)", color: "var(--accent-foreground)", boxShadow: "var(--elevation-2)" }}
                   >
@@ -87,11 +103,15 @@ export function PlayerGrid({
                 )}
               </div>
               <span
-                className={`text-xs font-medium truncate max-w-full ${p.isEliminated ? "opacity-40" : ""}`}
+                className={`text-xs font-medium text-center leading-tight line-clamp-2 break-words max-w-full ${p.isEliminated ? "opacity-40" : ""}`}
               >
                 {p.displayName}
-                {isMe ? " (you)" : ""}
               </span>
+              {isMe && (
+                <span className="-mt-0.5 text-[11px] font-semibold uppercase tracking-wide leading-none text-accent-bright">
+                  you
+                </span>
+              )}
             </motion.button>
           );
         })}

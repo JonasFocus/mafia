@@ -20,7 +20,7 @@ export function Stepper({
   /** Caption shown under disabled segments, e.g. "Need 5+ players". */
   disabledCaption?: (option: number) => string;
 }) {
-  const segments = options ?? Array.from({ length: 3 - min + 1 }, (_, i) => min + i);
+  const segments = options ?? Array.from({ length: Math.max(0, max - min + 1) }, (_, i) => min + i);
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -39,7 +39,7 @@ export function Stepper({
               disabled={isDisabled}
               onClick={() => !isDisabled && onChange(option)}
               className="relative flex-1 flex items-center justify-center rounded-xl h-11 font-display font-semibold text-base disabled:pointer-events-none"
-              style={{ opacity: isDisabled ? 0.3 : 1 }}
+              style={{ opacity: isDisabled ? 0.55 : 1 }}
             >
               {isSelected && !isDisabled && (
                 <motion.div
@@ -59,9 +59,11 @@ export function Stepper({
           );
         })}
       </div>
-      {disabledCaption && segments.some((o) => o > max) && (
-        <span className="text-xs text-foreground-muted text-center">
-          {disabledCaption(Math.min(...segments.filter((o) => o > max)))}
+      {disabledCaption && (
+        <span className="block min-h-4 text-center text-xs text-foreground-muted">
+          {segments.some((o) => o > max)
+            ? disabledCaption(Math.min(...segments.filter((o) => o > max)))
+            : ""}
         </span>
       )}
     </div>

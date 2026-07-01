@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { PlayerGrid } from "@/components/game/PlayerGrid";
+import { ChipDrop } from "@/components/game/ChipDrop";
 import { Button } from "@/components/ui/Button";
 import { toPlayerView, phaseSpring as spring } from "./shared";
 import type { Game, MafiaPlayerView } from "@/lib/game/types";
@@ -29,6 +30,7 @@ export function DayVoteScreen({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [chipDrop, setChipDrop] = useState(false);
+  const submittingRef = useRef(false);
 
   const votable = useMemo(
     () => players.filter((p) => !p.isEliminated).map(toPlayerView),
@@ -36,7 +38,8 @@ export function DayVoteScreen({
   );
 
   async function handleVote() {
-    if (!selected) return;
+    if (!selected || submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setError(null);
     setChipDrop(true);
@@ -46,6 +49,7 @@ export function DayVoteScreen({
       setError(err instanceof Error ? err.message : "Could not cast vote");
       setSubmitting(false);
       setChipDrop(false);
+      submittingRef.current = false;
     }
   }
 
@@ -101,10 +105,10 @@ export function DayVoteScreen({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={spring}
-            className="relative flex flex-1 flex-col items-center px-6 py-8 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto"
+            className="relative flex flex-1 flex-col items-center overflow-y-auto px-6 py-8 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto"
           >
             <div className="flex flex-col items-center gap-1 text-center">
-              <h2 className="font-display text-2xl font-bold">Who gets lynched?</h2>
+              <h2 className="font-display text-2xl font-bold">Who do you vote out?</h2>
               <p className="text-sm text-foreground-muted">Your vote is secret. A tie means no one.</p>
             </div>
 
@@ -133,33 +137,3 @@ export function DayVoteScreen({
   );
 }
 
-function ChipDrop({ index, playerCount }: { index: number; playerCount: number }) {
-  const columns = Math.min(playerCount, 4);
-  const col = index % columns;
-  const row = Math.floor(index / columns);
-  const originX = `calc(${(col + 0.5) * (100 / columns)}% - 50%)`;
-  const originY = row * 96;
-
-  return (
-    <motion.div
-      initial={{ x: originX, y: originY, scale: 1, opacity: 1 }}
-      animate={{
-        x: "calc(50% - 50%)",
-        y: -12,
-        scale: [1, 1.3, 0.9, 1],
-        opacity: [1, 1, 1, 0],
-      }}
-      transition={{ duration: 0.55, times: [0, 0.5, 0.85, 1], ease: [0.2, 0, 0.4, 1] }}
-      className="pointer-events-none absolute left-1/2 top-1/2 flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold"
-      style={{
-        background: "var(--gold-glow)",
-        color: "var(--background-deep)",
-        boxShadow: "var(--elevation-3)",
-        translateX: "-50%",
-        translateY: "-50%",
-      }}
-    >
-      ●
-    </motion.div>
-  );
-}

@@ -26,13 +26,14 @@ export function useGame(roomCode: string) {
         supabase.auth.getUser(),
       ]);
       if (!playerRows) return;
-      const ids = playerRows.map((p) => p.user_id!).filter(Boolean);
+      const rows = playerRows.filter((p): p is typeof p & { user_id: string } => p.user_id !== null);
+      const ids = rows.map((p) => p.user_id);
       const { data: userRows } = await supabase.from("users").select("id, display_name").in("id", ids);
       const nameById = new Map(userRows?.map((u) => [u.id, u.display_name]) ?? []);
       setPlayers(
-        playerRows.map((p) => ({
-          userId: p.user_id!,
-          displayName: nameById.get(p.user_id!) ?? "Player",
+        rows.map((p) => ({
+          userId: p.user_id,
+          displayName: nameById.get(p.user_id) ?? "Player",
           isEliminated: !!p.is_eliminated,
           isOutsider: p.is_outsider,
           joinOrder: p.join_order ?? 0,
@@ -94,7 +95,14 @@ export function useGame(roomCode: string) {
         setError(gErr.message);
         return;
       }
-      if (!g) return;
+      if (!g) {
+        // The game row was deleted out from under us (host ended the game).
+        if (gameIdRef.current) {
+          setGame(null);
+          setError("This game has ended");
+        }
+        return;
+      }
       setGame(g);
       await Promise.all([refetchPlayers(gameId), refetchRound(gameId), refetchWord(g)]);
     },
@@ -112,7 +120,12 @@ export function useGame(roomCode: string) {
         .eq("room_code", roomCode.toUpperCase())
         .maybeSingle();
       if (cancelled) return;
-      if (gErr || !g) {
+      if (gErr) {
+        setError("Couldn’t load the game. Check your connection and try again.");
+        setLoading(false);
+        return;
+      }
+      if (!g) {
         setError("Room not found");
         setLoading(false);
         return;
@@ -148,13 +161,32 @@ export function useGame(roomCode: string) {
       // hint/vote inserts touch games.updated_at server-side, so the filtered
       // games listener above drives round-progress refetches — no unscoped
       // listeners (votes RLS wouldn't deliver other ballots anyway)
-      .subscribe();
+      .subscribe((status) => {
+        // On (re)connect, catch up on anything missed while the socket was down.
+        if (status === "SUBSCRIBED") refetchGame(gameId);
+      });
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refetchGame(gameId);
+    };
+    document.addEventListener("visibilitychange", onVisible);
 
     return () => {
+      document.removeEventListener("visibilitychange", onVisible);
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game?.id]);
+  }, [game?.id, supabase, refetchGame, refetchPlayers, refetchRound]);
+
+  // Lobby membership can't stream over realtime: game_players RLS is own-row-only,
+  // so postgres_changes never delivers another player's INSERT to existing clients.
+  // Poll the (security-definer) player list while in the lobby so the roster and
+  // the Start button stay current as people join.
+  useEffect(() => {
+    if (game?.status !== "lobby" || !game?.id) return;
+    const gameId = game.id;
+    const interval = setInterval(() => refetchPlayers(gameId), 2500);
+    return () => clearInterval(interval);
+  }, [game?.status, game?.id, refetchPlayers]);
 
   return { userId, game, players, round, hintedPlayerIds, votedPlayerIds, myVoteCast, wordText, loading, error };
 }

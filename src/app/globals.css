@@ -73,6 +73,9 @@ body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   min-height: 100%;
   position: relative;
+  /* Keep content clear of the notch/rounded corners in landscape. */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* Subtle grain — the "phone glowing in a dim room" texture that ties the whole
@@ -89,10 +92,10 @@ body::before {
 }
 
 .safe-top {
-  padding-top: max(1rem, var(--safe-top));
+  padding-top: max(1.5rem, var(--safe-top));
 }
 .safe-bottom {
-  padding-bottom: max(1.25rem, var(--safe-bottom));
+  padding-bottom: max(1.5rem, var(--safe-bottom));
 }
 
 .font-display {
@@ -115,10 +118,30 @@ body::before {
   animation: spotlight-pulse 4.5s ease-in-out infinite;
 }
 
+/* Shared accent spotlight glow (home hero, lobby) — one source of truth instead
+   of a bespoke radial-gradient per screen. */
+.spotlight-accent {
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent), transparent 70%);
+}
+
 @keyframes pop-in {
   from { opacity: 0; transform: scale(0.92) translateY(6px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
 .animate-pop-in {
   animation: pop-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Respect the OS "reduce motion" setting: neutralize CSS keyframe loops and
+   transitions. Framer Motion is handled separately via <MotionConfig
+   reducedMotion="user">. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

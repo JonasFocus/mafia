@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar } from "@/components/ui/Avatar";
 import { roleGlow } from "./shared";
 import type { MafiaPlayerView, PlayerRole } from "@/lib/game/types";
 
 const ROLE_COPY: Record<PlayerRole, { label: string; blurb: string }> = {
-  faithful: { label: "Faithful", blurb: "You are not the Mafia." },
-  mafia: { label: "Mafia", blurb: "You are one of the Mafia." },
-  sheriff: { label: "Sheriff", blurb: "Inspect one player each night." },
-  angel: { label: "Angel", blurb: "Protect one player each night." },
+  faithful: { label: "Faithful", blurb: "You have no night power — root out the Mafia by day." },
+  mafia: { label: "Mafia", blurb: "You are one of the Mafia — eliminate the town by night." },
+  sheriff: { label: "Sheriff", blurb: "You inspect one player each night." },
+  angel: { label: "Angel", blurb: "You protect one player each night." },
 };
 
 export function MafiaRoleCard({
@@ -22,16 +22,21 @@ export function MafiaRoleCard({
 }) {
   const [flipped, setFlipped] = useState(false);
   const [locked, setLocked] = useState(false);
+  const timeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => () => timeouts.current.forEach(clearTimeout), []);
 
   function handleTap() {
     if (locked) return;
     if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(12);
     setLocked(true);
     setFlipped(true);
-    setTimeout(() => {
-      setFlipped(false);
-      setTimeout(() => setLocked(false), 600);
-    }, 2600);
+    timeouts.current.push(
+      setTimeout(() => {
+        setFlipped(false);
+        timeouts.current.push(setTimeout(() => setLocked(false), 300));
+      }, 4000),
+    );
   }
 
   const isMafia = role === "mafia";
@@ -43,15 +48,16 @@ export function MafiaRoleCard({
     <div className="relative w-full max-w-xs mx-auto">
       <motion.div
         className="pointer-events-none absolute -inset-x-4 -top-10 h-64 rounded-full blur-3xl"
-        animate={{
-          background: `radial-gradient(circle at 30% 20%, ${flipped ? `${glow}4d` : `${glow}1f`}, transparent 70%)`,
-        }}
+        style={{ background: `radial-gradient(circle at 30% 20%, color-mix(in srgb, ${glow} 30%, transparent), transparent 70%)` }}
+        animate={{ opacity: flipped ? 1 : 0.4 }}
         transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       />
 
-      <div
+      <button
+        type="button"
         onClick={handleTap}
-        className="relative aspect-[3/4] select-none cursor-pointer"
+        aria-label="Reveal your role"
+        className="relative block w-full aspect-[3/4] select-none cursor-pointer appearance-none rounded-[32px] outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         style={{ perspective: 1400 }}
       >
         <motion.div
@@ -93,6 +99,8 @@ export function MafiaRoleCard({
 
           {/* face-up */}
           <div
+            role="status"
+            aria-live="polite"
             className="absolute inset-0 rounded-[32px] flex flex-col items-center justify-center gap-3 px-7 text-center overflow-hidden"
             style={{
               backfaceVisibility: "hidden",
@@ -144,7 +152,7 @@ export function MafiaRoleCard({
             </AnimatePresence>
           </div>
         </motion.div>
-      </div>
+      </button>
     </div>
   );
 }

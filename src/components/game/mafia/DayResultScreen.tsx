@@ -58,7 +58,7 @@ export function DayResultScreen({
         }}
       />
 
-      <div className="relative flex flex-1 flex-col items-center px-6 py-8 safe-top safe-bottom gap-7 w-full max-w-sm mx-auto">
+      <div className="relative flex flex-1 flex-col items-center overflow-y-auto px-6 py-8 safe-top safe-bottom gap-7 w-full max-w-sm mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -70,6 +70,8 @@ export function DayResultScreen({
         </motion.div>
 
         <motion.div
+          role="status"
+          aria-live="polite"
           initial={{ opacity: 0, y: 14, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ ...spring, delay: 0.08 }}

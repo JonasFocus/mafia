@@ -58,7 +58,7 @@ export function Avatar({
               "inset 0 2px 3px rgba(255,255,255,0.25)",
               "inset 0 -3px 4px rgba(0,0,0,0.3)",
               `0 0 0 2px ${ringColor}`,
-              isActive ? "0 0 0 4px rgba(139,123,255,0.15)" : "",
+              isActive ? "0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent)" : "",
             ]
               .filter(Boolean)
               .join(", ")
@@ -72,7 +72,8 @@ export function Avatar({
       {initial}
       {isHost && (
         <span
-          className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full font-display font-bold"
+          aria-hidden="true"
+          className="absolute -bottom-1 -left-1 flex items-center justify-center rounded-full font-display font-bold"
           style={{
             width: size * 0.4,
             height: size * 0.4,
