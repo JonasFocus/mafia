@@ -124,8 +124,12 @@ export function RoleCard({
                     <>
                       <span className="text-xs tracking-widest uppercase text-foreground-muted">{category}</span>
                       <span
-                        className="font-display text-4xl font-bold leading-tight"
-                        style={{ color: glow, textShadow: `0 0 24px ${glow}66` }}
+                        className="font-display font-bold leading-tight break-words max-w-full"
+                        style={{
+                          color: glow,
+                          textShadow: `0 0 24px ${glow}66`,
+                          fontSize: "clamp(1.5rem, 8vw, 2.25rem)",
+                        }}
                       >
                         {word}
                       </span>
