@@ -72,7 +72,7 @@ export function Avatar({
       {initial}
       {isHost && (
         <span
-          className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 flex items-center justify-center rounded-full font-display font-bold"
+          className="absolute -bottom-1 -left-1 flex items-center justify-center rounded-full font-display font-bold"
           style={{
             width: size * 0.4,
             height: size * 0.4,
