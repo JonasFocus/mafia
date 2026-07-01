@@ -220,6 +220,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "games_last_night_victim_fkey"
+            columns: ["last_night_victim"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "games_word_id_fkey"
             columns: ["word_id"]
             isOneToOne: false
@@ -476,6 +483,14 @@ export type Database = {
       }
     }
     Functions: {
+      _game_status: {
+        Args: { p_game_id: string }
+        Returns: Database["public"]["Enums"]["game_status"]
+      }
+      _is_alive_player: {
+        Args: { p_game_id: string; p_user_id: string }
+        Returns: boolean
+      }
       _mafia_win_check: { Args: { p_game_id: string }; Returns: string }
       _maybe_resolve_night: {
         Args: { p_game_id: string; p_round: number }
