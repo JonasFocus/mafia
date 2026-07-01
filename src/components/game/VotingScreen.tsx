@@ -109,7 +109,7 @@ export function VotingScreen({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ type: "spring", stiffness: 380, damping: 22 }}
-            className="relative flex flex-1 flex-col items-center px-6 py-8 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto"
+            className="relative flex flex-1 flex-col items-center overflow-y-auto px-6 py-8 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto"
           >
             <h2 className="font-display text-2xl font-bold text-center">Who&apos;s the Mafia?</h2>
 

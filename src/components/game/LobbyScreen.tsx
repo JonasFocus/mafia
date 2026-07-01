@@ -98,7 +98,7 @@ export function LobbyScreen({
   }
 
   return (
-    <div className="relative flex flex-1 flex-col items-center px-6 py-8 safe-top safe-bottom gap-8 w-full max-w-sm mx-auto overflow-hidden">
+    <div className="relative flex flex-1 flex-col overflow-hidden">
       <div
         className="spotlight-pulse pointer-events-none absolute -top-32 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full blur-3xl"
         style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--accent) 40%, transparent), transparent 70%)" }}
@@ -125,6 +125,7 @@ export function LobbyScreen({
         </motion.button>
       )}
 
+      <div className="relative flex flex-1 flex-col items-center overflow-y-auto px-6 py-8 safe-top safe-bottom gap-8 w-full max-w-sm mx-auto">
       <motion.button
         onClick={handleCopy}
         whileTap={{ scale: 0.97, y: 1 }}
@@ -188,6 +189,7 @@ export function LobbyScreen({
       ) : (
         <p className="relative text-sm text-foreground-muted">Waiting for the host to start…</p>
       )}
+      </div>
 
       {isHost && (
         <BottomSheet open={settingsOpen} onClose={() => setSettingsOpen(false)}>
