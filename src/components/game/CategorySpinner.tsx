@@ -115,7 +115,7 @@ export function CategorySpinner({
                 scrollSnapAlign: "center",
                 transform: `scale(${s})`,
                 opacity: 0.35 + s * 0.65,
-                color: selected ? "var(--accent-foreground)" : "var(--foreground-muted)",
+                color: selected ? "var(--accent-foreground)" : "var(--foreground)",
                 fontSize: 17,
               }}
             >
