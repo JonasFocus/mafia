@@ -53,11 +53,11 @@ export function PlayerGrid({
             >
               <div className="relative">
                 <motion.div
-                  animate={isActive ? { scale: [1, 1.08, 1] } : { scale: [1, 1.015, 1] }}
+                  animate={isActive ? { scale: [1, 1.08, 1] } : { scale: 1 }}
                   transition={
                     isActive
                       ? { duration: 1.6, repeat: Infinity, ease: "easeInOut" }
-                      : { duration: 3.6 + (i % 4) * 0.4, repeat: Infinity, ease: "easeInOut", delay: i * 0.15 }
+                      : { duration: 0.3 }
                   }
                 >
                   <Avatar
