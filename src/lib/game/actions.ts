@@ -115,6 +115,14 @@ export async function beginDayVote(gameId: string) {
   if (error) throw error;
 }
 
+/** Host-only: resolve the current phase with whatever has been submitted, to
+ * recover from a player who abandoned mid-phase. */
+export async function forceAdvancePhase(gameId: string) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("force_advance_phase", { p_game_id: gameId });
+  if (error) throw new Error(error.message);
+}
+
 export async function submitNightAction(
   gameId: string,
   actionType: NightActionType,

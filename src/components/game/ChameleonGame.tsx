@@ -9,6 +9,7 @@ import { HintPhaseScreen } from "@/components/game/HintPhaseScreen";
 import { VotingScreen } from "@/components/game/VotingScreen";
 import { ResultsScreen } from "@/components/game/ResultsScreen";
 import { GameErrorScreen } from "@/components/game/GameErrorScreen";
+import { HostSkipButton } from "@/components/game/HostSkipButton";
 
 export function ChameleonGame({
   roomCode,
@@ -87,6 +88,10 @@ export function ChameleonGame({
           )}
         </motion.div>
       </AnimatePresence>
+
+      {isHost && (game.status === "hint_phase" || game.status === "voting") && (
+        <HostSkipButton gameId={game.id} />
+      )}
     </main>
   );
 }

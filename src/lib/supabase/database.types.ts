@@ -329,6 +329,7 @@ export type Database = {
     Functions: {
       start_game: { Args: { p_game_id: string }; Returns: undefined }
       count_game_players: { Args: { p_game_id: string }; Returns: number }
+      force_advance_phase: { Args: { p_game_id: string }; Returns: undefined }
       start_mafia_game: { Args: { p_game_id: string }; Returns: undefined }
       begin_night: { Args: { p_game_id: string }; Returns: undefined }
       begin_day_vote: { Args: { p_game_id: string }; Returns: undefined }

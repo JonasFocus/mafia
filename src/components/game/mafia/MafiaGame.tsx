@@ -5,6 +5,7 @@ import { useMafiaGame } from "@/hooks/use-mafia-game";
 import { LobbyScreen } from "@/components/game/LobbyScreen";
 import { PlayerGrid } from "@/components/game/PlayerGrid";
 import { GameErrorScreen } from "@/components/game/GameErrorScreen";
+import { HostSkipButton } from "@/components/game/HostSkipButton";
 import { MafiaRoleReveal } from "./MafiaRoleReveal";
 import { NightScreen } from "./NightScreen";
 import { DayResultScreen } from "./DayResultScreen";
@@ -143,6 +144,10 @@ export function MafiaGame({
           )}
         </motion.div>
       </AnimatePresence>
+
+      {isHost && (game.status === "night" || game.status === "day_vote") && (
+        <HostSkipButton gameId={game.id} />
+      )}
     </main>
   );
 }
