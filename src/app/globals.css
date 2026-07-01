@@ -1,26 +1,101 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0912;
+  --surface: #17151f;
+  --surface-raised: #211e2d;
+  --surface-border: rgba(255, 255, 255, 0.07);
+  --foreground: #f3f2f8;
+  --foreground-muted: #94909f;
+  --accent: #8b7bff;
+  --accent-bright: #a99cff;
+  --accent-foreground: #0a0912;
+  --civilian-glow: #8ff0c4;
+  --outsider-glow: #e6b3ea;
+  --gold-glow: #f3cd7e;
+
+  /* iPhone safe-area passthrough */
+  --safe-top: env(safe-area-inset-top);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
+  --safe-right: env(safe-area-inset-right);
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-surface-border: var(--surface-border);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-accent: var(--accent);
+  --color-accent-bright: var(--accent-bright);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-civilian-glow: var(--civilian-glow);
+  --color-outsider-glow: var(--outsider-glow);
+  --color-gold-glow: var(--gold-glow);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-lexend);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  height: 100%;
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(ellipse 120% 60% at 50% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  min-height: 100%;
+  position: relative;
+}
+
+/* Subtle grain — the "phone glowing in a dim room" texture that ties the whole
+   app to how it's actually played: in person, at night, screens lit low. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.safe-top {
+  padding-top: max(1rem, var(--safe-top));
+}
+.safe-bottom {
+  padding-bottom: max(1.25rem, var(--safe-bottom));
+}
+
+.font-display {
+  font-family: var(--font-display), var(--font-sans), ui-sans-serif, sans-serif;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes spotlight-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.06); }
+}
+.spotlight-pulse {
+  animation: spotlight-pulse 4.5s ease-in-out infinite;
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.92) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-pop-in {
+  animation: pop-in 0.35s cubic-bezier(0.16, 1, 0.3, 1) both;
 }

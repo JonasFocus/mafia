@@ -15,8 +15,8 @@ create policy "users insert own row" on users
 create policy "users update own row" on users
   for update to authenticated using ((select auth.uid()) = id) with check ((select auth.uid()) = id);
 
-create policy "categories readable" on categories
-  for select to authenticated using (true);
+create policy "categories readable by anyone" on categories
+  for select to anon, authenticated using (true);
 
 -- words.text: only readable by a player in that game who is NOT the outsider, post role_reveal
 create policy "words readable by non-outsider players post-reveal" on words

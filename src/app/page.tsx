@@ -1,65 +1,50 @@
-import Image from "next/image";
+import Link from "next/link";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="relative flex flex-1 flex-col items-center justify-center px-6 py-12 safe-top safe-bottom overflow-hidden">
+      <div
+        className="spotlight-pulse pointer-events-none absolute -top-24 left-1/2 h-96 w-96 -translate-x-1/2 rounded-full blur-3xl"
+        style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent), transparent 70%)" }}
+      />
+
+      <div className="relative w-full max-w-sm flex flex-col items-center text-center gap-3 mb-14">
+        <div
+          className="flex h-20 w-20 items-center justify-center rounded-[28px] text-3xl font-display font-bold mb-2"
+          style={{
+            background: "linear-gradient(155deg, var(--accent-bright), var(--accent) 60%, #4a3fb8)",
+            color: "var(--accent-foreground)",
+            boxShadow: "0 12px 40px -12px color-mix(in srgb, var(--accent) 70%, transparent)",
+          }}
+        >
+          ?
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        <h1 className="font-display text-5xl font-bold tracking-tight">Outsider</h1>
+        <p className="text-foreground-muted text-[15px] max-w-[280px] leading-relaxed">
+          Everyone knows the word. One of you is bluffing. Find them before they survive three rounds.
+        </p>
+      </div>
+
+      <div className="relative w-full max-w-sm flex flex-col gap-3">
+        <Link
+          href="/host"
+          className="flex h-14 items-center justify-center rounded-full font-display font-semibold text-base active:scale-[0.96] transition-transform"
+          style={{
+            background: "linear-gradient(135deg, var(--accent-bright), var(--accent))",
+            color: "var(--accent-foreground)",
+            boxShadow: "0 8px 24px -8px color-mix(in srgb, var(--accent) 60%, transparent)",
+          }}
+        >
+          Host a Game
+        </Link>
+        <Link
+          href="/join"
+          className="flex h-14 items-center justify-center rounded-full bg-surface-raised text-foreground font-display font-semibold text-base active:scale-[0.96] transition-transform"
+          style={{ boxShadow: "inset 0 0 0 1px var(--surface-border)" }}
+        >
+          Join a Game
+        </Link>
+      </div>
+    </main>
   );
 }
