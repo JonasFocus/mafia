@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { QRCodeSVG } from "qrcode.react";
 import { useRouter } from "next/navigation";
 import { PlayerGrid } from "./PlayerGrid";
 import { MafiaSettings } from "./mafia/MafiaSettings";
@@ -37,6 +38,13 @@ export function LobbyScreen({
   const [mafiaCountOverride, setMafiaCountOverride] = useState<number | null>(null);
   const [showCategoriesOverride, setShowCategoriesOverride] = useState<boolean | null>(null);
   const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [inviteUrl, setInviteUrl] = useState("");
+
+  // Built on mount so SSR/client markup match; used for the invite QR.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInviteUrl(`${window.location.origin}/join?code=${game.room_code}`);
+  }, [game.room_code]);
   const minPlayers = isMafia ? 5 : 4;
   const canStart = players.length >= minPlayers && players.length <= 8;
   const maxMafia = Math.max(1, Math.floor((players.length - 1) / 2));
@@ -199,6 +207,21 @@ export function LobbyScreen({
         </svg>
         {shared ? "Link copied!" : "Invite players"}
       </motion.button>
+
+      {inviteUrl && (
+        <div
+          className="flex flex-col items-center gap-2 rounded-2xl bg-white p-3"
+          style={{ boxShadow: "var(--elevation-2)" }}
+        >
+          <QRCodeSVG value={inviteUrl} size={124} />
+          <span
+            className="text-[11px] font-semibold uppercase tracking-wide"
+            style={{ color: "var(--background-deep)" }}
+          >
+            Scan to join
+          </span>
+        </div>
+      )}
 
       <div className="relative w-full flex-1">
         <div className="flex items-center justify-between mb-3">
