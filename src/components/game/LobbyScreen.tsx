@@ -98,12 +98,14 @@ export function LobbyScreen({
     });
   }
 
+  // Keep the optimistic value shown until it's confirmed by the realtime games
+  // update; only revert on failure. This avoids the flicker (and lost-update
+  // look) when the success handler cleared the override before realtime caught up.
   async function handleMafiaCountChange(value: number) {
     setMafiaCountOverride(value);
     setSettingsError(null);
     try {
       await updateGameSettings(game.id, { mafiaCount: value });
-      setMafiaCountOverride(null);
     } catch (err) {
       setMafiaCountOverride(null);
       setSettingsError(err instanceof Error ? err.message : "Could not update settings");
@@ -115,7 +117,6 @@ export function LobbyScreen({
     setSettingsError(null);
     try {
       await updateGameSettings(game.id, { showCategories: value });
-      setShowCategoriesOverride(null);
     } catch (err) {
       setShowCategoriesOverride(null);
       setSettingsError(err instanceof Error ? err.message : "Could not update settings");
