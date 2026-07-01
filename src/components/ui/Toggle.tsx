@@ -44,7 +44,9 @@ export function Toggle({
             width: 44,
             height: 26,
             background: checked ? "var(--accent)" : "var(--surface-raised)",
-            boxShadow: checked ? "0 0 0 3px rgba(139,123,255,0.15)" : "inset 0 1px 2px rgba(0,0,0,0.4)",
+            boxShadow: checked
+              ? "0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent)"
+              : "inset 0 1px 2px rgba(0,0,0,0.4)",
             transition: "background 0.2s ease, box-shadow 0.2s ease",
           }}
         >

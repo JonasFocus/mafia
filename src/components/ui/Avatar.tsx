@@ -58,7 +58,7 @@ export function Avatar({
               "inset 0 2px 3px rgba(255,255,255,0.25)",
               "inset 0 -3px 4px rgba(0,0,0,0.3)",
               `0 0 0 2px ${ringColor}`,
-              isActive ? "0 0 0 4px rgba(139,123,255,0.15)" : "",
+              isActive ? "0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent)" : "",
             ]
               .filter(Boolean)
               .join(", ")
