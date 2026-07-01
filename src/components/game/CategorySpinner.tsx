@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useCallback } from "react";
-import { CATEGORY_ICONS } from "@/lib/game/category-icons";
+import { getCategoryIcon } from "@/lib/game/category-icons";
 import type { Tables } from "@/lib/supabase/database.types";
 
 const ITEM_HEIGHT = 60;
@@ -119,7 +119,7 @@ export function CategorySpinner({
                 fontSize: 17,
               }}
             >
-              <span>{CATEGORY_ICONS[c.name] ?? "🎲"}</span>
+              <span>{getCategoryIcon(c.name)}</span>
               <span>{c.name}</span>
             </button>
           );

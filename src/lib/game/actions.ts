@@ -1,11 +1,12 @@
 import { createClient } from "@/lib/supabase/client";
 import type { GameMode, NightActionType } from "@/lib/game/types";
 
-const ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I ambiguity
+export const ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I ambiguity
+export const ROOM_CODE_LENGTH = 4;
 
-function randomRoomCode() {
+export function randomRoomCode() {
   let code = "";
-  for (let i = 0; i < 4; i++) {
+  for (let i = 0; i < ROOM_CODE_LENGTH; i++) {
     code += ROOM_CODE_CHARS[Math.floor(Math.random() * ROOM_CODE_CHARS.length)];
   }
   return code;

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Stepper } from "@/components/ui/Stepper";
 import { Toggle } from "@/components/ui/Toggle";
 import { updateGameSettings } from "@/lib/game/actions";
+import { maxMafiaCount, showMafiaParityWarning } from "@/components/game/mafia/shared";
 import type { Game } from "@/lib/game/types";
 
 export function MafiaSettings({ game, playerCount }: { game: Game; playerCount: number }) {
@@ -16,8 +17,8 @@ export function MafiaSettings({ game, playerCount }: { game: Game; playerCount: 
   const sheriffEnabled = sheriffOverride ?? game.sheriff_enabled;
   const angelEnabled = angelOverride ?? game.angel_enabled;
 
-  const maxMafia = Math.max(1, Math.floor((playerCount - 1) / 2));
-  const showParityWarning = mafiaCount === Math.floor((playerCount - 1) / 2) && playerCount < 7;
+  const maxMafia = maxMafiaCount(playerCount);
+  const showParityWarning = showMafiaParityWarning(mafiaCount, playerCount);
 
   async function handleMafiaCountChange(value: number) {
     setMafiaCountOverride(value);

@@ -1,3 +1,5 @@
+export const DEFAULT_CATEGORY_ICON = "🎲";
+
 export const CATEGORY_ICONS: Record<string, string> = {
   Sports: "⚽️",
   Food: "🍕",
@@ -25,3 +27,7 @@ export const CATEGORY_ICONS: Record<string, string> = {
   "Late-Night Snacks": "🌙",
   Celebrities: "🌟",
 };
+
+export function getCategoryIcon(categoryName: string): string {
+  return CATEGORY_ICONS[categoryName] ?? DEFAULT_CATEGORY_ICON;
+}
