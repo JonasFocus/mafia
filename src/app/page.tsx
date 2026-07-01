@@ -19,7 +19,7 @@ export default function HomePage() {
         >
           ?
         </div>
-        <h1 className="font-display text-5xl font-bold tracking-tight">Outsider</h1>
+        <h1 className="font-display text-5xl font-bold tracking-tight">Mafia</h1>
         <p className="text-foreground-muted text-[15px] max-w-[280px] leading-relaxed">
           Everyone knows the word. One of you is bluffing. Find them before they survive three rounds.
         </p>

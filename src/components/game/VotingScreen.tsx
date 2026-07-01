@@ -53,7 +53,7 @@ export function VotingScreen({
 
   return (
     <div className="flex flex-1 flex-col items-center px-6 py-8 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto">
-      <h2 className="font-display text-2xl font-bold text-center">Who&apos;s the Outsider?</h2>
+      <h2 className="font-display text-2xl font-bold text-center">Who&apos;s the Mafia?</h2>
       <PlayerGrid players={votable} selectedUserId={selected} onSelect={setSelected} meId={userId} />
       {error && <p className="text-sm text-outsider-glow">{error}</p>}
       <Button onClick={handleVote} disabled={!selected || submitting} className="w-full mt-auto">

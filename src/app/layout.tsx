@@ -14,8 +14,8 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "Outsider",
-  description: "A party game of bluffing and deduction. Find the Outsider before they survive.",
+  title: "Mafia",
+  description: "A party game of bluffing and deduction. Find the Mafia before they survive.",
 };
 
 export const viewport: Viewport = {

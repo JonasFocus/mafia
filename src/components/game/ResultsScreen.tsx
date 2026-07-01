@@ -28,10 +28,10 @@ export function ResultsScreen({
         }}
       >
         <span className="text-xs tracking-widest uppercase text-foreground-muted">
-          {winner === "outsider" ? "The Outsider survived" : "The Outsider was caught"}
+          {winner === "outsider" ? "The Mafia survived" : "The Mafia was caught"}
         </span>
         <span className="font-display text-4xl font-bold" style={{ color: glow }}>
-          {winner === "outsider" ? "Outsider Wins" : "Civilians Win"}
+          {winner === "outsider" ? "Mafia Wins" : "Civilians Win"}
         </span>
       </div>
 
@@ -56,7 +56,7 @@ export function ResultsScreen({
                 background: `${p.isOutsider ? ringColorFor(2) : ringColorFor(1)}1f`,
               }}
             >
-              {p.isOutsider ? "Outsider" : "Civilian"}
+              {p.isOutsider ? "Mafia" : "Civilian"}
             </span>
           </div>
         ))}

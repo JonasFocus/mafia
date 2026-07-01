@@ -90,7 +90,7 @@ export function RoleCard({
                     <>
                       <span className="text-xs tracking-widest uppercase text-foreground-muted">You are the</span>
                       <span className="font-display text-4xl font-bold" style={{ color: glow }}>
-                        Outsider
+                        Mafia
                       </span>
                       <span className="text-sm text-foreground-muted mt-1 max-w-[200px]">
                         You don&apos;t know the word. Bluff like you do.
