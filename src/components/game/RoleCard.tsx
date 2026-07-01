@@ -63,8 +63,9 @@ export function RoleCard({
             className="absolute inset-0 rounded-[32px] flex flex-col items-center justify-center gap-3 overflow-hidden"
             style={{
               backfaceVisibility: "hidden",
-              background: "linear-gradient(155deg, var(--surface-raised), var(--surface))",
-              boxShadow: "var(--elevation-3)",
+              background: "linear-gradient(160deg, var(--surface-overlay), var(--surface-raised) 65%, var(--surface))",
+              boxShadow:
+                "0 22px 45px -14px rgba(0,0,0,0.75), inset 0 0 0 1px var(--surface-border-strong), var(--elevation-3)",
             }}
           >
             <div
