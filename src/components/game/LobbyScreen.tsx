@@ -157,8 +157,9 @@ export function LobbyScreen({
           {copied ? "Copied!" : "Room code · tap to copy"}
         </span>
         <span
-          className="font-display text-7xl font-bold tracking-[0.12em]"
+          className="font-display font-bold tracking-[0.12em] whitespace-nowrap"
           style={{
+            fontSize: "clamp(2.5rem, 14vw, 4.5rem)",
             background: "linear-gradient(180deg, var(--foreground), var(--accent-bright))",
             WebkitBackgroundClip: "text",
             backgroundClip: "text",
