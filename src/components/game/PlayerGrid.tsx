@@ -22,6 +22,10 @@ export function PlayerGrid({
   /** When set, the matching player's avatar gets the gold host badge. */
   hostUserId?: string;
 }) {
+  if (players.length === 0) {
+    return <p className="py-4 text-center text-sm text-foreground-muted">Waiting for players…</p>;
+  }
+
   return (
     <div className="grid grid-cols-4 gap-3 w-full">
       <AnimatePresence initial={false}>
