@@ -107,6 +107,9 @@ export function CategorySpinner({
               key={c.id}
               ref={(el) => {
                 if (el) itemRefs.current.set(c.id, el);
+                return () => {
+                  itemRefs.current.delete(c.id);
+                };
               }}
               onClick={() => handleTap(c.id)}
               className="relative z-20 flex w-full items-center justify-center gap-2 px-4 font-display font-semibold"
