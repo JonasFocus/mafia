@@ -87,11 +87,15 @@ export function PlayerGrid({
                 )}
               </div>
               <span
-                className={`text-xs font-medium truncate max-w-full ${p.isEliminated ? "opacity-40" : ""}`}
+                className={`text-xs font-medium text-center leading-tight line-clamp-2 break-words max-w-full ${p.isEliminated ? "opacity-40" : ""}`}
               >
                 {p.displayName}
-                {isMe ? " (you)" : ""}
               </span>
+              {isMe && (
+                <span className="-mt-0.5 text-[9px] font-semibold uppercase tracking-wide leading-none text-accent-bright">
+                  you
+                </span>
+              )}
             </motion.button>
           );
         })}
