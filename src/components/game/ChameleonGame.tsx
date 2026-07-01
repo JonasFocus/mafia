@@ -78,8 +78,15 @@ export function ChameleonGame({
           )}
 
           {game.status === "round_result" && (
-            <div className="flex flex-1 items-center justify-center safe-top safe-bottom">
-              <p className="text-foreground-muted">Tallying votes…</p>
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center safe-top safe-bottom">
+              <motion.span
+                animate={{ scale: [1, 1.12, 1] }}
+                transition={{ duration: 1.4, repeat: Infinity }}
+                className="text-4xl"
+              >
+                🗳️
+              </motion.span>
+              <p className="font-display text-lg font-semibold">Tallying the votes…</p>
             </div>
           )}
 
