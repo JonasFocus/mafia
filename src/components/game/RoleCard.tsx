@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function RoleCard({
@@ -16,16 +16,21 @@ export function RoleCard({
 }) {
   const [flipped, setFlipped] = useState(false);
   const [locked, setLocked] = useState(false);
+  const timeouts = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => () => timeouts.current.forEach(clearTimeout), []);
 
   function handleTap() {
     if (locked) return;
     if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(12);
     setLocked(true);
     setFlipped(true);
-    setTimeout(() => {
-      setFlipped(false);
-      setTimeout(() => setLocked(false), 300);
-    }, 3500);
+    timeouts.current.push(
+      setTimeout(() => {
+        setFlipped(false);
+        timeouts.current.push(setTimeout(() => setLocked(false), 300));
+      }, 3500),
+    );
   }
 
   const glow = isOutsider ? "var(--outsider-glow)" : "var(--civilian-glow)";
