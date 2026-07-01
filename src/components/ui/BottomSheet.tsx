@@ -21,7 +21,7 @@ export function BottomSheet({
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50">
+        <div className="fixed inset-0 z-[60]">
           <motion.div
             className="absolute inset-0 bg-black/60"
             initial={{ opacity: 0 }}
