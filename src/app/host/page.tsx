@@ -22,17 +22,23 @@ export default function HostPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase
-      .from("categories")
-      .select("*")
-      .order("name")
-      .then(({ data }) => {
-        if (data) {
-          setCategories(data);
-          setCategoryId(data[0]?.id ?? "");
-        }
-      });
+    try {
+      const supabase = createClient();
+      supabase
+        .from("categories")
+        .select("*")
+        .order("name")
+        .then(({ data }) => {
+          if (data) {
+            setCategories(data);
+            setCategoryId(data[0]?.id ?? "");
+          }
+        });
+    } catch {
+      // Supabase not configured / unreachable — leave categories empty rather than
+      // crashing the whole page (createClient() throws synchronously without valid
+      // project credentials).
+    }
   }, []);
 
   async function handleHost(e: React.FormEvent) {

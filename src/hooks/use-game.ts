@@ -17,6 +17,13 @@ export function useGame(roomCode: string) {
   const [error, setError] = useState<string | null>(null);
 
   const gameIdRef = useRef<string | null>(null);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const refetchPlayers = useCallback(
     async (gameId: string) => {
@@ -24,9 +31,11 @@ export function useGame(roomCode: string) {
         supabase.from("game_players_public").select("*").eq("game_id", gameId).order("join_order"),
         supabase.auth.getUser(),
       ]);
+      if (!mountedRef.current) return;
       if (!playerRows) return;
       const ids = playerRows.map((p) => p.user_id!).filter(Boolean);
       const { data: userRows } = await supabase.from("users").select("id, display_name").in("id", ids);
+      if (!mountedRef.current) return;
       const nameById = new Map(userRows?.map((u) => [u.id, u.display_name]) ?? []);
       setPlayers(
         playerRows.map((p) => ({
@@ -51,6 +60,7 @@ export function useGame(roomCode: string) {
         .order("round_number", { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (!mountedRef.current) return;
       setRound(roundRow);
       if (!roundRow) {
         setHintedPlayerIds([]);
@@ -58,6 +68,7 @@ export function useGame(roomCode: string) {
         return;
       }
       const { data: hints } = await supabase.from("hints_given").select("player_id").eq("round_id", roundRow.id);
+      if (!mountedRef.current) return;
       setHintedPlayerIds(hints?.map((h) => h.player_id) ?? []);
 
       const {
@@ -70,6 +81,7 @@ export function useGame(roomCode: string) {
           .eq("round_id", roundRow.id)
           .eq("voter_id", user.id)
           .maybeSingle();
+        if (!mountedRef.current) return;
         setMyVoteCast(!!myVote);
       }
     },
@@ -83,6 +95,7 @@ export function useGame(roomCode: string) {
         return;
       }
       const { data } = await supabase.from("words").select("text").eq("id", g.word_id).maybeSingle();
+      if (!mountedRef.current) return;
       setWordText(data?.text ?? null);
     },
     [supabase],
@@ -91,6 +104,7 @@ export function useGame(roomCode: string) {
   const refetchGame = useCallback(
     async (gameId: string) => {
       const { data: g, error: gErr } = await supabase.from("games").select("*").eq("id", gameId).maybeSingle();
+      if (!mountedRef.current) return;
       if (gErr) {
         setError(gErr.message);
         return;
@@ -120,6 +134,7 @@ export function useGame(roomCode: string) {
       }
       gameIdRef.current = g.id;
       await refetchGame(g.id);
+      if (cancelled) return;
       setLoading(false);
     }
     init();

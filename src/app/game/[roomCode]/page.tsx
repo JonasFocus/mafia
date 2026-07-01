@@ -18,13 +18,19 @@ export default function GamePage({ params }: { params: Promise<{ roomCode: strin
 
   useEffect(() => {
     if (!game?.category_id) return;
+    let cancelled = false;
     const supabase = createClient();
     supabase
       .from("categories")
       .select("name")
       .eq("id", game.category_id)
       .maybeSingle()
-      .then(({ data }) => setCategoryName(data?.name ?? ""));
+      .then(({ data }) => {
+        if (!cancelled) setCategoryName(data?.name ?? "");
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [game?.category_id]);
 
   if (loading) {

@@ -13,6 +13,27 @@ export function MafiaSettings({ game, playerCount }: { game: Game; playerCount: 
   const [angelOverride, setAngelOverride] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Drop each optimistic override the moment the realtime-synced game prop itself
+  // changes (adjusted during render, not in an effect, per React's "you might not need
+  // an effect" guidance). Clearing immediately on RPC success instead would re-derive
+  // the value from the still-stale game prop until the realtime update lands, causing a
+  // visible flicker back to the old value before jumping to the new one.
+  const [prevMafiaCount, setPrevMafiaCount] = useState(game.mafia_count);
+  if (game.mafia_count !== prevMafiaCount) {
+    setPrevMafiaCount(game.mafia_count);
+    setMafiaCountOverride(null);
+  }
+  const [prevSheriffEnabled, setPrevSheriffEnabled] = useState(game.sheriff_enabled);
+  if (game.sheriff_enabled !== prevSheriffEnabled) {
+    setPrevSheriffEnabled(game.sheriff_enabled);
+    setSheriffOverride(null);
+  }
+  const [prevAngelEnabled, setPrevAngelEnabled] = useState(game.angel_enabled);
+  if (game.angel_enabled !== prevAngelEnabled) {
+    setPrevAngelEnabled(game.angel_enabled);
+    setAngelOverride(null);
+  }
+
   const mafiaCount = mafiaCountOverride ?? game.mafia_count;
   const sheriffEnabled = sheriffOverride ?? game.sheriff_enabled;
   const angelEnabled = angelOverride ?? game.angel_enabled;
@@ -26,9 +47,8 @@ export function MafiaSettings({ game, playerCount }: { game: Game; playerCount: 
     try {
       await updateGameSettings(game.id, { mafiaCount: value });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not update settings");
-    } finally {
       setMafiaCountOverride(null);
+      setError(err instanceof Error ? err.message : "Could not update settings");
     }
   }
 
@@ -38,9 +58,8 @@ export function MafiaSettings({ game, playerCount }: { game: Game; playerCount: 
     try {
       await updateGameSettings(game.id, { sheriffEnabled: value });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not update settings");
-    } finally {
       setSheriffOverride(null);
+      setError(err instanceof Error ? err.message : "Could not update settings");
     }
   }
 
@@ -50,9 +69,8 @@ export function MafiaSettings({ game, playerCount }: { game: Game; playerCount: 
     try {
       await updateGameSettings(game.id, { angelEnabled: value });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not update settings");
-    } finally {
       setAngelOverride(null);
+      setError(err instanceof Error ? err.message : "Could not update settings");
     }
   }
 

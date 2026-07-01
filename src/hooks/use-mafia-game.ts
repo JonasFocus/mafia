@@ -16,6 +16,13 @@ export function useMafiaGame(roomCode: string) {
 
   const gameIdRef = useRef<string | null>(null);
   const roundRef = useRef<number>(1);
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const refetchPlayers = useCallback(
     async (gameId: string) => {
@@ -23,9 +30,11 @@ export function useMafiaGame(roomCode: string) {
         supabase.from("game_players_public").select("*").eq("game_id", gameId).order("join_order"),
         supabase.auth.getUser(),
       ]);
+      if (!mountedRef.current) return;
       if (!playerRows) return;
       const ids = playerRows.map((p) => p.user_id!).filter(Boolean);
       const { data: userRows } = await supabase.from("users").select("id, display_name").in("id", ids);
+      if (!mountedRef.current) return;
       const nameById = new Map(userRows?.map((u) => [u.id, u.display_name]) ?? []);
       setPlayers(
         playerRows.map((p) => ({
@@ -48,6 +57,7 @@ export function useMafiaGame(roomCode: string) {
         .select("*")
         .eq("game_id", gameId)
         .eq("round_number", round);
+      if (!mountedRef.current) return;
       setNightActions(data ?? []);
     },
     [supabase],
@@ -60,6 +70,7 @@ export function useMafiaGame(roomCode: string) {
         .select("*")
         .eq("game_id", gameId)
         .eq("round_number", round);
+      if (!mountedRef.current) return;
       setDayVotes(data ?? []);
     },
     [supabase],
@@ -68,6 +79,7 @@ export function useMafiaGame(roomCode: string) {
   const refetchGame = useCallback(
     async (gameId: string) => {
       const { data: g, error: gErr } = await supabase.from("games").select("*").eq("id", gameId).maybeSingle();
+      if (!mountedRef.current) return;
       if (gErr) {
         setError(gErr.message);
         return;
@@ -102,6 +114,7 @@ export function useMafiaGame(roomCode: string) {
       }
       gameIdRef.current = g.id;
       await refetchGame(g.id);
+      if (cancelled) return;
       setLoading(false);
     }
     init();

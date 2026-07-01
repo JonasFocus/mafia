@@ -4,9 +4,20 @@ import { type NextRequest, NextResponse } from "next/server";
 export default async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  // Without these, createServerClient() throws synchronously, and since this proxy
+  // runs on every request (matcher excludes only static assets), a missing/misconfigured
+  // env var would otherwise take down every route in the app, including pages with no
+  // Supabase calls of their own. Skip session refresh instead of crashing the request.
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return response;
+  }
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl,
+    supabaseAnonKey,
     {
       cookies: {
         getAll() {

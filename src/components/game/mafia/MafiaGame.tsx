@@ -90,6 +90,14 @@ export function MafiaGame({
             />
           )}
 
+          {(game.status === "role_reveal" || game.status === "night") && me && !myRole && (
+            <main className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center safe-top safe-bottom">
+              <p className="text-foreground-muted">
+                You joined after this round started, so you&apos;re sitting this one out.
+              </p>
+            </main>
+          )}
+
           {game.status === "night" && me && myRole && (
             <NightScreen
               game={game}

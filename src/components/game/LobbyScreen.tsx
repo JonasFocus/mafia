@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { PlayerGrid } from "./PlayerGrid";
@@ -39,6 +39,30 @@ export function LobbyScreen({
   const minPlayers = isMafia ? 5 : 4;
   const canStart = players.length >= minPlayers && players.length <= 8;
   const maxMafia = Math.max(1, Math.floor((players.length - 1) / 2));
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+    };
+  }, []);
+
+  // Drop the optimistic override the moment the realtime-synced game prop itself
+  // changes (adjusted during render, not in an effect, per React's "you might not need
+  // an effect" guidance). Clearing immediately on RPC success instead would re-derive
+  // the value from the still-stale game prop until the realtime update lands, causing a
+  // visible flicker back to the old value before jumping to the new one.
+  const [prevMafiaCount, setPrevMafiaCount] = useState(game.mafia_count);
+  if (game.mafia_count !== prevMafiaCount) {
+    setPrevMafiaCount(game.mafia_count);
+    setMafiaCountOverride(null);
+  }
+  const [prevShowCategories, setPrevShowCategories] = useState(game.show_categories);
+  if (game.show_categories !== prevShowCategories) {
+    setPrevShowCategories(game.show_categories);
+    setShowCategoriesOverride(null);
+  }
+
   const mafiaCount = mafiaCountOverride ?? game.mafia_count;
   const showCategories = showCategoriesOverride ?? game.show_categories;
 
@@ -69,7 +93,8 @@ export function LobbyScreen({
   function handleCopy() {
     navigator.clipboard?.writeText(game.room_code).then(() => {
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+      if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      copyTimeoutRef.current = setTimeout(() => setCopied(false), 1500);
     });
   }
 
@@ -78,7 +103,6 @@ export function LobbyScreen({
     setSettingsError(null);
     try {
       await updateGameSettings(game.id, { mafiaCount: value });
-      setMafiaCountOverride(null);
     } catch (err) {
       setMafiaCountOverride(null);
       setSettingsError(err instanceof Error ? err.message : "Could not update settings");
@@ -90,7 +114,6 @@ export function LobbyScreen({
     setSettingsError(null);
     try {
       await updateGameSettings(game.id, { showCategories: value });
-      setShowCategoriesOverride(null);
     } catch (err) {
       setShowCategoriesOverride(null);
       setSettingsError(err instanceof Error ? err.message : "Could not update settings");

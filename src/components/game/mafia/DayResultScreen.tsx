@@ -20,37 +20,16 @@ export function DayResultScreen({
 }) {
   const submittingRef = useRef(false);
 
-  const eliminated = useMemo(
-    () => players.filter((p) => p.isEliminated),
-    [players],
-  );
   const living = useMemo(
     () => players.filter((p) => !p.isEliminated).map(toPlayerView),
     [players],
   );
 
-  const victims = useMemo(() => {
-    if (typeof window === "undefined") return eliminated;
-    const key = `mafia:${game.id}:deadSeen`;
-    let prevSeen: string[] = [];
-    try {
-      prevSeen = JSON.parse(sessionStorage.getItem(key) ?? "[]") as string[];
-    } catch {
-      prevSeen = [];
-    }
-    const currentIds = eliminated.map((p) => p.userId);
-    const seededBefore = prevSeen.length > 0;
-    const fresh = eliminated.filter((p) => !prevSeen.includes(p.userId));
-    try {
-      sessionStorage.setItem(key, JSON.stringify(currentIds));
-    } catch {
-      // sessionStorage unavailable; fall through with best-effort diff
-    }
-    // Only trust the diff once we've observed a prior snapshot in this browser.
-    return seededBefore ? fresh : fresh.length === 1 ? fresh : [];
-  }, [eliminated, game.id]);
-
-  const noOneDied = victims.length === 0;
+  // The server stamps who (if anyone) was killed each night resolution onto
+  // games.night_victim_id, so every client renders the same authoritative result
+  // regardless of local storage state or which device/round they first connected on.
+  const victim = players.find((p) => p.userId === game.night_victim_id) ?? null;
+  const noOneDied = !victim;
 
   async function handleBeginVote() {
     if (submittingRef.current) return;
@@ -96,11 +75,9 @@ export function DayResultScreen({
             <>
               <p className="text-sm text-foreground-muted">Found dead this morning</p>
               <div className="flex flex-col items-center gap-1">
-                {victims.map((v) => (
-                  <span key={v.userId} className="font-display text-xl font-bold text-outsider-glow">
-                    {v.displayName}
-                  </span>
-                ))}
+                <span className="font-display text-xl font-bold text-outsider-glow">
+                  {victim?.displayName}
+                </span>
               </div>
             </>
           )}

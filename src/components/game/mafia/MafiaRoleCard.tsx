@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar } from "@/components/ui/Avatar";
 import { roleGlow } from "./shared";
@@ -22,16 +22,26 @@ export function MafiaRoleCard({
 }) {
   const [flipped, setFlipped] = useState(false);
   const [locked, setLocked] = useState(false);
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      timers.forEach(clearTimeout);
+    };
+  }, []);
 
   function handleTap() {
     if (locked) return;
     if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate?.(12);
     setLocked(true);
     setFlipped(true);
-    setTimeout(() => {
-      setFlipped(false);
-      setTimeout(() => setLocked(false), 600);
-    }, 2600);
+    timersRef.current.push(
+      setTimeout(() => {
+        setFlipped(false);
+        timersRef.current.push(setTimeout(() => setLocked(false), 600));
+      }, 2600),
+    );
   }
 
   const isMafia = role === "mafia";

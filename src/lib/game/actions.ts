@@ -85,18 +85,13 @@ export async function updateGameSettings(
   },
 ) {
   const supabase = createClient();
-  const update: {
-    mafia_count?: number;
-    show_categories?: boolean;
-    sheriff_enabled?: boolean;
-    angel_enabled?: boolean;
-  } = {};
-  if (settings.mafiaCount !== undefined) update.mafia_count = settings.mafiaCount;
-  if (settings.showCategories !== undefined) update.show_categories = settings.showCategories;
-  if (settings.sheriffEnabled !== undefined) update.sheriff_enabled = settings.sheriffEnabled;
-  if (settings.angelEnabled !== undefined) update.angel_enabled = settings.angelEnabled;
-
-  const { error } = await supabase.from("games").update(update).eq("id", gameId);
+  const { error } = await supabase.rpc("update_game_settings", {
+    p_game_id: gameId,
+    p_mafia_count: settings.mafiaCount ?? null,
+    p_show_categories: settings.showCategories ?? null,
+    p_sheriff_enabled: settings.sheriffEnabled ?? null,
+    p_angel_enabled: settings.angelEnabled ?? null,
+  });
   if (error) throw error;
 }
 

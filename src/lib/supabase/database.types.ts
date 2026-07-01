@@ -113,6 +113,7 @@ export type Database = {
           id: string
           mafia_count: number
           max_rounds: number
+          night_victim_id: string | null
           reveal_role_on_death: boolean
           room_code: string
           sheriff_enabled: boolean
@@ -132,6 +133,7 @@ export type Database = {
           id?: string
           mafia_count?: number
           max_rounds?: number
+          night_victim_id?: string | null
           reveal_role_on_death?: boolean
           room_code: string
           sheriff_enabled?: boolean
@@ -151,6 +153,7 @@ export type Database = {
           id?: string
           mafia_count?: number
           max_rounds?: number
+          night_victim_id?: string | null
           reveal_role_on_death?: boolean
           room_code?: string
           sheriff_enabled?: boolean
@@ -342,6 +345,16 @@ export type Database = {
       }
       cast_day_vote: {
         Args: { p_game_id: string; p_target_id: string }
+        Returns: undefined
+      }
+      update_game_settings: {
+        Args: {
+          p_game_id: string
+          p_mafia_count?: number | null
+          p_show_categories?: boolean | null
+          p_sheriff_enabled?: boolean | null
+          p_angel_enabled?: boolean | null
+        }
         Returns: undefined
       }
     }
