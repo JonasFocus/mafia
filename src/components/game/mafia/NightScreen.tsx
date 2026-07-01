@@ -282,6 +282,8 @@ function InspectResult({
   const glow = isMafia ? MAFIA_GLOW : TOWN_GLOW;
   return (
     <motion.div
+      role="status"
+      aria-live="polite"
       initial={{ opacity: 0, scale: 0.85 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 380, damping: 22 }}

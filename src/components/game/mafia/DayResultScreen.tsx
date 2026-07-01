@@ -96,6 +96,8 @@ export function DayResultScreen({
         </motion.div>
 
         <motion.div
+          role="status"
+          aria-live="polite"
           initial={{ opacity: 0, y: 14, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ ...spring, delay: 0.08 }}
