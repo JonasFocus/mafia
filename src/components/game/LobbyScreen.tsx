@@ -278,7 +278,7 @@ export function LobbyScreen({
             {settingsError && <p className="text-sm text-outsider-glow">{settingsError}</p>}
 
             <Button onClick={() => setSettingsOpen(false)} className="w-full">
-              Save
+              Done
             </Button>
           </div>
         </BottomSheet>
