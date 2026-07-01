@@ -15,8 +15,22 @@ const lexend = Lexend({
 });
 
 export const metadata: Metadata = {
-  title: "Mafia",
-  description: "A party game of bluffing and deduction. Find the Mafia before they survive.",
+  title: "Mafia — party game",
+  description:
+    "A party game of bluffing and deduction. One of you is faking it — blend in, or expose the impostor.",
+  applicationName: "Mafia",
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Mafia" },
+  openGraph: {
+    title: "Mafia — party game",
+    description: "A party game of bluffing and deduction. One of you is faking it.",
+    type: "website",
+    siteName: "Mafia",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Mafia — party game",
+    description: "A party game of bluffing and deduction. One of you is faking it.",
+  },
 };
 
 export const viewport: Viewport = {
