@@ -20,8 +20,8 @@ export default function JoinPage() {
     setLoading(true);
     setError(null);
     try {
-      const userId = await ensureGuestSession(name.trim());
-      const game = await joinGame(userId, roomCode.trim());
+      await ensureGuestSession(name.trim());
+      const game = await joinGame(roomCode.trim());
       router.push(`/game/${game.room_code}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");

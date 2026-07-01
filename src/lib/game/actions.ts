@@ -39,32 +39,13 @@ export async function createGame(
   throw new Error("Could not generate a unique room code, please try again");
 }
 
-export async function joinGame(userId: string, roomCode: string) {
+export async function joinGame(roomCode: string) {
   const supabase = createClient();
 
-  const { data: game, error: gameError } = await supabase
-    .from("games")
-    .select("*")
-    .eq("room_code", roomCode.toUpperCase())
-    .maybeSingle();
-  if (gameError) throw gameError;
+  const { data, error } = await supabase.rpc("join_game", { p_room_code: roomCode.toUpperCase() });
+  if (error) throw error;
+  const game = data?.[0];
   if (!game) throw new Error("Room not found");
-  if (game.status !== "lobby") throw new Error("This game has already started");
-
-  const { data: playerCount, error: countError } = await supabase.rpc("count_game_players", {
-    p_game_id: game.id,
-  });
-  if (countError) throw countError;
-  if ((playerCount ?? 0) >= 8) throw new Error("This room is full");
-
-  const { error: joinError } = await supabase
-    .from("game_players")
-    .upsert(
-      { game_id: game.id, user_id: userId, join_order: playerCount ?? 0 },
-      { onConflict: "game_id,user_id", ignoreDuplicates: true },
-    );
-  if (joinError) throw joinError;
-
   return game;
 }
 
