@@ -165,5 +165,16 @@ export function useGame(roomCode: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [game?.id]);
 
+  // Lobby membership can't stream over realtime: game_players RLS is own-row-only,
+  // so postgres_changes never delivers another player's INSERT to existing clients.
+  // Poll the (security-definer) player list while in the lobby so the roster and
+  // the Start button stay current as people join.
+  useEffect(() => {
+    if (game?.status !== "lobby" || !game?.id) return;
+    const gameId = game.id;
+    const interval = setInterval(() => refetchPlayers(gameId), 2500);
+    return () => clearInterval(interval);
+  }, [game?.status, game?.id, refetchPlayers]);
+
   return { userId, game, players, round, hintedPlayerIds, myVoteCast, wordText, loading, error };
 }
