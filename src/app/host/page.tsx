@@ -96,27 +96,29 @@ export default function HostPage() {
         <h1 className="font-display text-3xl font-bold tracking-tight">Host a Game</h1>
 
         <div
-          className="flex gap-1.5 rounded-2xl p-1.5"
+          className="relative flex rounded-2xl p-1"
           style={{ background: "var(--surface)", boxShadow: "var(--elevation-1)" }}
         >
           {(["chameleon", "mafia"] as const).map((m) => {
             const active = mode === m;
             return (
-              <motion.button
+              <button
                 key={m}
                 type="button"
                 onClick={() => setMode(m)}
-                whileTap={{ scale: 0.96 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="flex-1 rounded-xl py-3 text-sm font-semibold capitalize transition-colors"
-                style={{
-                  background: active ? "var(--accent)" : "transparent",
-                  color: active ? "var(--accent-foreground)" : "var(--foreground-muted)",
-                  boxShadow: active ? "var(--elevation-2)" : "none",
-                }}
+                className="relative flex-1 rounded-xl py-3 text-sm font-semibold capitalize"
+                style={{ color: active ? "var(--accent-foreground)" : "var(--foreground-muted)" }}
               >
-                {m}
-              </motion.button>
+                {active && (
+                  <motion.div
+                    layoutId="mode-pill"
+                    className="absolute inset-0 rounded-xl"
+                    style={{ background: "var(--accent)", boxShadow: "var(--elevation-3)" }}
+                    transition={{ type: "spring", stiffness: 400, damping: 28 }}
+                  />
+                )}
+                <span className="relative z-10">{m}</span>
+              </button>
             );
           })}
         </div>
