@@ -20,20 +20,30 @@ export default function HostPage() {
   const [categoryId, setCategoryId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [catStatus, setCatStatus] = useState<"loading" | "error" | "ready">("loading");
+  const [catRetry, setCatRetry] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
     const supabase = createClient();
     supabase
       .from("categories")
       .select("*")
       .order("name")
-      .then(({ data }) => {
-        if (data) {
-          setCategories(data);
-          setCategoryId(data[0]?.id ?? "");
+      .then(({ data, error: catError }) => {
+        if (cancelled) return;
+        if (catError || !data || data.length === 0) {
+          setCatStatus("error");
+          return;
         }
+        setCategories(data);
+        setCategoryId(data[0].id);
+        setCatStatus("ready");
       });
-  }, []);
+    return () => {
+      cancelled = true;
+    };
+  }, [catRetry]);
 
   async function handleHost(e: React.FormEvent) {
     e.preventDefault();
@@ -113,8 +123,16 @@ export default function HostPage() {
                 className="relative rounded-3xl bg-surface-raised p-3"
                 style={{ boxShadow: "var(--elevation-2)" }}
               >
-                {categories.length > 0 && (
+                {catStatus === "ready" && (
                   <CategorySpinner categories={categories} value={categoryId} onChange={setCategoryId} />
+                )}
+                {catStatus === "loading" && (
+                  <motion.div
+                    animate={{ opacity: [0.3, 0.7, 0.3] }}
+                    transition={{ duration: 1.4, repeat: Infinity }}
+                    className="h-24 rounded-2xl"
+                    style={{ background: "var(--surface)" }}
+                  />
                 )}
               </div>
             </div>
@@ -134,6 +152,22 @@ export default function HostPage() {
         <div className="flex-1" />
 
         {error && <p className="text-sm text-outsider-glow text-center">{error}</p>}
+
+        {catStatus === "error" && (
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-sm text-outsider-glow text-center">Couldn&apos;t load categories.</p>
+            <button
+              type="button"
+              onClick={() => {
+                setCatStatus("loading");
+                setCatRetry((k) => k + 1);
+              }}
+              className="text-sm font-semibold underline underline-offset-4"
+            >
+              Try again
+            </button>
+          </div>
+        )}
 
         <Button type="submit" disabled={loading || !name.trim() || !categoryId} className="w-full">
           {loading ? "Creating room…" : "Create Room"}
