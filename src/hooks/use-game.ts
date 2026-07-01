@@ -177,8 +177,7 @@ export function useGame(roomCode: string) {
       document.removeEventListener("visibilitychange", onVisible);
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game?.id]);
+  }, [game?.id, supabase, refetchGame, refetchPlayers, refetchRound]);
 
   // Lobby membership can't stream over realtime: game_players RLS is own-row-only,
   // so postgres_changes never delivers another player's INSERT to existing clients.

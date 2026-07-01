@@ -162,8 +162,7 @@ export function useMafiaGame(roomCode: string) {
       document.removeEventListener("visibilitychange", onVisible);
       supabase.removeChannel(channel);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [game?.id]);
+  }, [game?.id, supabase, refetchGame, refetchPlayers, refetchNightActions, refetchDayVotes]);
 
   // Lobby membership can't stream over realtime (game_players RLS is own-row-only),
   // so poll the security-definer player list while in the lobby to keep the roster
