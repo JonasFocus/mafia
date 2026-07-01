@@ -55,7 +55,7 @@ export function ResultsScreen({
           {players.map((p, i) => (
             <div
               key={p.userId}
-              className="flex items-center gap-3 rounded-2xl px-4 h-16 shrink-0"
+              className="flex items-center gap-3 rounded-2xl px-4 h-14 shrink-0"
               style={{ background: "var(--surface)", boxShadow: "var(--elevation-2)" }}
             >
               <Avatar
