@@ -199,7 +199,6 @@ export function useMafiaGame(roomCode: string) {
     nightActions,
     myNightAction,
     myInspectResult,
-    dayVotes,
     myDayVoteCast,
     loading,
     error,
