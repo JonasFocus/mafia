@@ -7,10 +7,10 @@ import { roleGlow } from "./shared";
 import type { MafiaPlayerView, PlayerRole } from "@/lib/game/types";
 
 const ROLE_COPY: Record<PlayerRole, { label: string; blurb: string }> = {
-  faithful: { label: "Faithful", blurb: "You are not the Mafia." },
-  mafia: { label: "Mafia", blurb: "You are one of the Mafia." },
-  sheriff: { label: "Sheriff", blurb: "Inspect one player each night." },
-  angel: { label: "Angel", blurb: "Protect one player each night." },
+  faithful: { label: "Faithful", blurb: "You have no night power — root out the Mafia by day." },
+  mafia: { label: "Mafia", blurb: "You are one of the Mafia — eliminate the town by night." },
+  sheriff: { label: "Sheriff", blurb: "You inspect one player each night." },
+  angel: { label: "Angel", blurb: "You protect one player each night." },
 };
 
 export function MafiaRoleCard({
