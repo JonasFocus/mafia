@@ -29,6 +29,7 @@ export function HintPhaseScreen({
   showCategories: boolean;
 }) {
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const alreadyHinted = hintedIds.includes(userId);
 
   const turnOrder = round.hint_order
@@ -38,8 +39,11 @@ export function HintPhaseScreen({
 
   async function handleGiveHint() {
     setSubmitting(true);
+    setError(null);
     try {
       await giveHint(round.id, userId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not mark your hint");
     } finally {
       setSubmitting(false);
     }
@@ -64,6 +68,8 @@ export function HintPhaseScreen({
       </p>
 
       <PlayerGrid players={players} activeUserId={currentTurn?.userId} hintedIds={hintedIds} meId={userId} />
+
+      {error && <p className="text-sm text-outsider-glow text-center">{error}</p>}
 
       <Button onClick={handleGiveHint} disabled={alreadyHinted || submitting} className="w-full mt-auto">
         {alreadyHinted ? "Hint given — waiting on others" : submitting ? "Marking…" : "I've given my hint"}
