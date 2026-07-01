@@ -30,7 +30,11 @@ export function ChameleonGame({
       .select("name")
       .eq("id", game.category_id)
       .maybeSingle()
-      .then(({ data }) => setCategoryName(data?.name ?? ""));
+      .then(({ data }) => {
+        // Only overwrite on success so a transient fetch failure doesn't blank
+        // an already-loaded category name.
+        if (data?.name) setCategoryName(data.name);
+      });
   }, [game?.category_id]);
 
   if (error || !game) {
