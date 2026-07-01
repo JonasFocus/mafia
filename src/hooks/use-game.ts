@@ -120,7 +120,12 @@ export function useGame(roomCode: string) {
         .eq("room_code", roomCode.toUpperCase())
         .maybeSingle();
       if (cancelled) return;
-      if (gErr || !g) {
+      if (gErr) {
+        setError("Couldn’t load the game. Check your connection and try again.");
+        setLoading(false);
+        return;
+      }
+      if (!g) {
         setError("Room not found");
         setLoading(false);
         return;
