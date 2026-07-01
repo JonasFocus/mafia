@@ -78,7 +78,7 @@ export default function HostPage() {
       const game = await createGame(userId, categoryId, mode);
       router.push(`/game/${game.room_code}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : "Couldn’t create the room. Try again.");
       setLoading(false);
     }
   }

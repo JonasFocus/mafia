@@ -41,7 +41,7 @@ export default function JoinPage() {
       const game = await joinGame(roomCode.trim());
       router.push(`/game/${game.room_code}`);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : "Couldn’t join that game. Try again.");
       setLoading(false);
     }
   }
