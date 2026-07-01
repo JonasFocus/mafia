@@ -214,9 +214,9 @@ export function LobbyScreen({
             ? "Starting…"
             : canStart
               ? "Start Game"
-              : isMafia
-                ? "Need 5–8 players"
-                : `Need ${4 - players.length > 0 ? "4-8" : "≤8"} players`}
+              : players.length < minPlayers
+                ? `Need ${minPlayers - players.length} more player${minPlayers - players.length === 1 ? "" : "s"}`
+                : "Too many players (max 8)"}
         </Button>
       ) : (
         <p className="relative text-sm text-foreground-muted">Waiting for the host to start…</p>
