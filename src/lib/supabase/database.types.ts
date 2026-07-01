@@ -150,6 +150,7 @@ export type Database = {
           game_mode: string
           host_id: string
           id: string
+          last_night_victim: string | null
           mafia_count: number
           max_rounds: number
           reveal_role_on_death: boolean
@@ -157,6 +158,7 @@ export type Database = {
           sheriff_enabled: boolean
           show_categories: boolean
           status: Database["public"]["Enums"]["game_status"]
+          updated_at: string
           winner: string | null
           word_id: string | null
         }
@@ -169,6 +171,7 @@ export type Database = {
           game_mode?: string
           host_id: string
           id?: string
+          last_night_victim?: string | null
           mafia_count?: number
           max_rounds?: number
           reveal_role_on_death?: boolean
@@ -176,6 +179,7 @@ export type Database = {
           sheriff_enabled?: boolean
           show_categories?: boolean
           status?: Database["public"]["Enums"]["game_status"]
+          updated_at?: string
           winner?: string | null
           word_id?: string | null
         }
@@ -188,6 +192,7 @@ export type Database = {
           game_mode?: string
           host_id?: string
           id?: string
+          last_night_victim?: string | null
           mafia_count?: number
           max_rounds?: number
           reveal_role_on_death?: boolean
@@ -195,6 +200,7 @@ export type Database = {
           sheriff_enabled?: boolean
           show_categories?: boolean
           status?: Database["public"]["Enums"]["game_status"]
+          updated_at?: string
           winner?: string | null
           word_id?: string | null
         }

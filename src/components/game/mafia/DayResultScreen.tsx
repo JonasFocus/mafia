@@ -29,26 +29,12 @@ export function DayResultScreen({
     [players],
   );
 
-  const victims = useMemo(() => {
-    if (typeof window === "undefined") return eliminated;
-    const key = `mafia:${game.id}:deadSeen`;
-    let prevSeen: string[] = [];
-    try {
-      prevSeen = JSON.parse(sessionStorage.getItem(key) ?? "[]") as string[];
-    } catch {
-      prevSeen = [];
-    }
-    const currentIds = eliminated.map((p) => p.userId);
-    const seededBefore = prevSeen.length > 0;
-    const fresh = eliminated.filter((p) => !prevSeen.includes(p.userId));
-    try {
-      sessionStorage.setItem(key, JSON.stringify(currentIds));
-    } catch {
-      // sessionStorage unavailable; fall through with best-effort diff
-    }
-    // Only trust the diff once we've observed a prior snapshot in this browser.
-    return seededBefore ? fresh : fresh.length === 1 ? fresh : [];
-  }, [eliminated, game.id]);
+  // resolve_night records the victim on the games row (null = saved/no kill),
+  // so this survives reloads and lost sessionStorage.
+  const victims = useMemo(
+    () => eliminated.filter((p) => p.userId === game.last_night_victim),
+    [eliminated, game.last_night_victim],
+  );
 
   const noOneDied = victims.length === 0;
 
