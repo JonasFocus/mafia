@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import type { GameMode, NightActionType } from "@/lib/game/types";
 
 const ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I ambiguity
 
@@ -10,14 +11,18 @@ function randomRoomCode() {
   return code;
 }
 
-export async function createGame(userId: string, categoryId: string) {
+export async function createGame(
+  userId: string,
+  categoryId: string,
+  gameMode: GameMode = "chameleon",
+) {
   const supabase = createClient();
 
   for (let attempt = 0; attempt < 5; attempt++) {
     const roomCode = randomRoomCode();
     const { data: game, error } = await supabase
       .from("games")
-      .insert({ room_code: roomCode, host_id: userId, category_id: categoryId })
+      .insert({ room_code: roomCode, host_id: userId, category_id: categoryId, game_mode: gameMode })
       .select()
       .single();
 
@@ -71,14 +76,70 @@ export async function startGame(gameId: string) {
 
 export async function updateGameSettings(
   gameId: string,
-  settings: { mafiaCount?: number; showCategories?: boolean },
+  settings: {
+    mafiaCount?: number;
+    showCategories?: boolean;
+    sheriffEnabled?: boolean;
+    angelEnabled?: boolean;
+  },
 ) {
   const supabase = createClient();
-  const update: { mafia_count?: number; show_categories?: boolean } = {};
+  const update: {
+    mafia_count?: number;
+    show_categories?: boolean;
+    sheriff_enabled?: boolean;
+    angel_enabled?: boolean;
+  } = {};
   if (settings.mafiaCount !== undefined) update.mafia_count = settings.mafiaCount;
   if (settings.showCategories !== undefined) update.show_categories = settings.showCategories;
+  if (settings.sheriffEnabled !== undefined) update.sheriff_enabled = settings.sheriffEnabled;
+  if (settings.angelEnabled !== undefined) update.angel_enabled = settings.angelEnabled;
 
   const { error } = await supabase.from("games").update(update).eq("id", gameId);
+  if (error) throw error;
+}
+
+export async function startMafiaGame(gameId: string) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("start_mafia_game", { p_game_id: gameId });
+  if (error) throw error;
+}
+
+export async function beginNight(gameId: string) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("begin_night", { p_game_id: gameId });
+  if (error) throw error;
+}
+
+export async function beginDayVote(gameId: string) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("begin_day_vote", { p_game_id: gameId });
+  if (error) throw error;
+}
+
+export async function submitNightAction(
+  gameId: string,
+  actionType: NightActionType,
+  targetId: string,
+) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("submit_night_action", {
+    p_game_id: gameId,
+    p_action_type: actionType,
+    p_target_id: targetId,
+  });
+  if (error) throw error;
+}
+
+export async function castDayVote(gameId: string, targetId: string) {
+  const supabase = createClient();
+  const { error } = await supabase.rpc("cast_day_vote", { p_game_id: gameId, p_target_id: targetId });
+  if (error) throw error;
+}
+
+export async function deleteGame(gameId: string) {
+  const supabase = createClient();
+  const { error } = await supabase.from("games").delete().eq("id", gameId);
   if (error) throw error;
 }
 

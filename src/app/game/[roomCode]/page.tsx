@@ -8,6 +8,7 @@ import { LobbyScreen } from "@/components/game/LobbyScreen";
 import { HintPhaseScreen } from "@/components/game/HintPhaseScreen";
 import { VotingScreen } from "@/components/game/VotingScreen";
 import { ResultsScreen } from "@/components/game/ResultsScreen";
+import { MafiaGame } from "@/components/game/mafia/MafiaGame";
 
 export default function GamePage({ params }: { params: Promise<{ roomCode: string }> }) {
   const { roomCode } = use(params);
@@ -49,6 +50,10 @@ export default function GamePage({ params }: { params: Promise<{ roomCode: strin
 
   const me = players.find((p) => p.userId === userId);
   const isHost = game.host_id === userId;
+
+  if (game.game_mode === "mafia") {
+    return <MafiaGame roomCode={roomCode} userId={userId} isHost={isHost} />;
+  }
 
   return (
     <main className="flex flex-1 flex-col">

@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { PlayerGrid } from "./PlayerGrid";
+import { MafiaSettings } from "./mafia/MafiaSettings";
 import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Stepper } from "@/components/ui/Stepper";
 import { Toggle } from "@/components/ui/Toggle";
-import { startGame, updateGameSettings } from "@/lib/game/actions";
-import type { Game, PlayerView } from "@/lib/game/types";
+import { startGame, startMafiaGame, updateGameSettings, deleteGame } from "@/lib/game/actions";
+import type { Game, GameMode, PlayerView } from "@/lib/game/types";
 
 export function LobbyScreen({
   game,
@@ -16,13 +18,17 @@ export function LobbyScreen({
   isHost,
   categoryName,
   userId,
+  mode = "chameleon",
 }: {
   game: Game;
   players: PlayerView[];
   isHost: boolean;
   categoryName: string;
   userId: string;
+  mode?: GameMode;
 }) {
+  const router = useRouter();
+  const isMafia = mode === "mafia";
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -30,7 +36,8 @@ export function LobbyScreen({
   const [mafiaCountOverride, setMafiaCountOverride] = useState<number | null>(null);
   const [showCategoriesOverride, setShowCategoriesOverride] = useState<boolean | null>(null);
   const [settingsError, setSettingsError] = useState<string | null>(null);
-  const canStart = players.length >= 4 && players.length <= 8;
+  const minPlayers = isMafia ? 5 : 4;
+  const canStart = players.length >= minPlayers && players.length <= 8;
   const maxMafia = Math.max(1, Math.floor((players.length - 1) / 2));
   const mafiaCount = mafiaCountOverride ?? game.mafia_count;
   const showCategories = showCategoriesOverride ?? game.show_categories;
@@ -39,10 +46,23 @@ export function LobbyScreen({
     setStarting(true);
     setError(null);
     try {
-      await startGame(game.id);
+      if (isMafia) {
+        await startMafiaGame(game.id);
+      } else {
+        await startGame(game.id);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start the game");
       setStarting(false);
+    }
+  }
+
+  async function handleEndGame() {
+    try {
+      await deleteGame(game.id);
+      router.push("/");
+    } catch (err) {
+      setSettingsError(err instanceof Error ? err.message : "Could not end the game");
     }
   }
 
@@ -130,12 +150,14 @@ export function LobbyScreen({
         >
           {game.room_code}
         </span>
-        <span
-          className="text-sm font-medium px-3 py-1 rounded-full mt-1"
-          style={{ color: "var(--foreground-muted)", background: "var(--surface)", boxShadow: "var(--elevation-1)" }}
-        >
-          {categoryName}
-        </span>
+        {categoryName && (
+          <span
+            className="text-sm font-medium px-3 py-1 rounded-full mt-1"
+            style={{ color: "var(--foreground-muted)", background: "var(--surface)", boxShadow: "var(--elevation-1)" }}
+          >
+            {categoryName}
+          </span>
+        )}
       </motion.button>
 
       <div className="relative w-full flex-1">
@@ -155,7 +177,13 @@ export function LobbyScreen({
 
       {isHost ? (
         <Button onClick={handleStart} disabled={!canStart || starting} className="relative w-full">
-          {starting ? "Starting…" : canStart ? "Start Game" : `Need ${4 - players.length > 0 ? "4-8" : "≤8"} players`}
+          {starting
+            ? "Starting…"
+            : canStart
+              ? "Start Game"
+              : isMafia
+                ? "Need 5–8 players"
+                : `Need ${4 - players.length > 0 ? "4-8" : "≤8"} players`}
         </Button>
       ) : (
         <p className="relative text-sm text-foreground-muted">Waiting for the host to start…</p>
@@ -166,34 +194,46 @@ export function LobbyScreen({
           <div className="flex flex-col gap-6">
             <h2 className="font-display text-xl font-bold">Game Settings</h2>
 
-            <div className="flex flex-col gap-2">
-              <span className="text-[15px] font-medium text-foreground">Mafia count</span>
-              <Stepper
-                value={mafiaCount}
-                onChange={handleMafiaCountChange}
-                min={1}
-                max={maxMafia}
-                options={[1, 2, 3]}
-                disabledCaption={(o) => `Need ${o * 2 + 1}+ players`}
-              />
-            </div>
+            {isMafia ? (
+              <MafiaSettings game={game} playerCount={players.length} />
+            ) : (
+              <>
+                <div className="flex flex-col gap-2">
+                  <span className="text-[15px] font-medium text-foreground">Mafia count</span>
+                  <Stepper
+                    value={mafiaCount}
+                    onChange={handleMafiaCountChange}
+                    min={1}
+                    max={maxMafia}
+                    options={[1, 2, 3]}
+                    disabledCaption={(o) => `Need ${o * 2 + 1}+ players`}
+                  />
+                </div>
 
-            <div className="flex flex-col gap-1.5">
-              <Toggle
-                checked={showCategories}
-                onChange={handleShowCategoriesChange}
-                label="Show Categories to Mafia"
-              />
-              <span className="text-xs text-foreground-muted">
-                Mafia will see the category, just not the word.
-              </span>
-            </div>
+                <div className="flex flex-col gap-1.5">
+                  <Toggle
+                    checked={showCategories}
+                    onChange={handleShowCategoriesChange}
+                    label="Show Categories to Mafia"
+                  />
+                  <span className="text-xs text-foreground-muted">
+                    Mafia will see the category, just not the word.
+                  </span>
+                </div>
+              </>
+            )}
 
             {settingsError && <p className="text-sm text-outsider-glow">{settingsError}</p>}
 
             <Button onClick={() => setSettingsOpen(false)} className="w-full">
               Save
             </Button>
+
+            {isMafia && (
+              <Button onClick={handleEndGame} variant="ghost" className="w-full">
+                End game
+              </Button>
+            )}
           </div>
         </BottomSheet>
       )}

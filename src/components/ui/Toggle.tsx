@@ -49,6 +49,7 @@ export function Toggle({
           className="absolute top-[3px] rounded-full bg-white"
           style={{ width: 20, height: 20, boxShadow: "var(--elevation-2)" }}
           animate={{ x: checked ? 21 : 3 }}
+          initial={false}
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
         />
       </button>
