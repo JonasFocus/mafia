@@ -13,7 +13,12 @@ function vibrate() {
 
 export default function HomePage() {
   return (
-    <main className="relative flex flex-1 flex-col items-center justify-center px-6 py-12 safe-top safe-bottom overflow-hidden">
+    <motion.main
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.7, ease: "easeOut" }}
+      className="relative flex flex-1 flex-col items-center justify-center px-6 py-12 safe-top safe-bottom overflow-hidden"
+    >
       <div
         className="spotlight-pulse pointer-events-none absolute -top-32 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full blur-3xl"
         style={{ background: "radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent), transparent 70%)" }}
@@ -84,6 +89,6 @@ export default function HomePage() {
           Join a Game
         </MotionLink>
       </div>
-    </main>
+    </motion.main>
   );
 }
