@@ -95,7 +95,14 @@ export function useGame(roomCode: string) {
         setError(gErr.message);
         return;
       }
-      if (!g) return;
+      if (!g) {
+        // The game row was deleted out from under us (host ended the game).
+        if (gameIdRef.current) {
+          setGame(null);
+          setError("This game has ended");
+        }
+        return;
+      }
       setGame(g);
       await Promise.all([refetchPlayers(gameId), refetchRound(gameId), refetchWord(g)]);
     },
