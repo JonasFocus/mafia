@@ -46,10 +46,12 @@ export function HintPhaseScreen({
   }
 
   return (
-    <div className="flex flex-1 flex-col items-center px-6 py-6 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto">
-      <span className="text-xs tracking-widest uppercase text-foreground-muted">Round {round.round_number}</span>
+    <div className="flex flex-1 flex-col items-center overflow-y-auto px-6 py-6 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto">
+      <span className="shrink-0 text-xs tracking-widest uppercase text-foreground-muted">Round {round.round_number}</span>
 
-      <RoleCard isOutsider={isOutsider} word={word} category={category} showCategory={showCategories} />
+      <div className="w-full shrink-0">
+        <RoleCard isOutsider={isOutsider} word={word} category={category} showCategory={showCategories} />
+      </div>
 
       <TurnOrderRail turnOrder={turnOrder} hintedIds={hintedIds} currentUserId={currentTurn?.userId} />
 
