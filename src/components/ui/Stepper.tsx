@@ -39,7 +39,7 @@ export function Stepper({
               disabled={isDisabled}
               onClick={() => !isDisabled && onChange(option)}
               className="relative flex-1 flex items-center justify-center rounded-xl h-11 font-display font-semibold text-base disabled:pointer-events-none"
-              style={{ opacity: isDisabled ? 0.3 : 1 }}
+              style={{ opacity: isDisabled ? 0.55 : 1 }}
             >
               {isSelected && !isDisabled && (
                 <motion.div
