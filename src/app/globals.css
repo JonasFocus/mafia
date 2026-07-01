@@ -73,6 +73,9 @@ body {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   min-height: 100%;
   position: relative;
+  /* Keep content clear of the notch/rounded corners in landscape. */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* Subtle grain — the "phone glowing in a dim room" texture that ties the whole
@@ -89,10 +92,10 @@ body::before {
 }
 
 .safe-top {
-  padding-top: max(1rem, var(--safe-top));
+  padding-top: max(1.5rem, var(--safe-top));
 }
 .safe-bottom {
-  padding-bottom: max(1.25rem, var(--safe-bottom));
+  padding-bottom: max(1.5rem, var(--safe-bottom));
 }
 
 .font-display {
