@@ -84,7 +84,7 @@ export default function HostPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col px-6 py-8 safe-top safe-bottom">
+    <main className="flex flex-1 flex-col overflow-y-auto px-6 py-8 safe-top safe-bottom">
       <Link
         href="/"
         className="text-foreground-muted text-sm mb-6 w-fit rounded outline-none transition-colors hover:text-foreground active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent"
