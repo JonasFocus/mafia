@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { CATEGORY_ICONS } from "@/lib/game/category-icons";
 import type { Tables } from "@/lib/supabase/database.types";
 
@@ -18,10 +18,11 @@ export function CategorySpinner({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
-  const [scale, setScale] = useState<Map<string, number>>(new Map());
   const lastHaptic = useRef<string>(value);
   const rafRef = useRef<number | null>(null);
 
+  // Write scale/opacity straight to the DOM on each scroll frame rather than
+  // through React state — avoids re-rendering every row on every frame.
   const recompute = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -29,20 +30,20 @@ export function CategorySpinner({
 
     let closestId = value;
     let closestDist = Infinity;
-    const next = new Map<string, number>();
 
     for (const c of categories) {
       const el = itemRefs.current.get(c.id);
       if (!el) continue;
       const itemCenter = el.offsetTop + el.clientHeight / 2;
       const dist = Math.abs(itemCenter - containerCenter);
-      next.set(c.id, Math.max(0.72, 1 - dist / 160));
+      const s = Math.max(0.72, 1 - dist / 160);
+      el.style.transform = `scale(${s})`;
+      el.style.opacity = String(0.35 + s * 0.65);
       if (dist < closestDist) {
         closestDist = dist;
         closestId = c.id;
       }
     }
-    setScale(next);
 
     if (closestId !== lastHaptic.current) {
       lastHaptic.current = closestId;
@@ -99,7 +100,6 @@ export function CategorySpinner({
       >
         <div style={{ height: padding }} />
         {categories.map((c) => {
-          const s = scale.get(c.id) ?? (c.id === value ? 1 : 0.8);
           const selected = c.id === value;
           return (
             <button
@@ -116,8 +116,6 @@ export function CategorySpinner({
               style={{
                 height: ITEM_HEIGHT,
                 scrollSnapAlign: "center",
-                transform: `scale(${s})`,
-                opacity: 0.35 + s * 0.65,
                 color: selected ? "var(--accent-foreground)" : "var(--foreground)",
                 fontSize: 17,
               }}
