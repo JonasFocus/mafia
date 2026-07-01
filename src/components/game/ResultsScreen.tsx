@@ -42,7 +42,7 @@ export function ResultsScreen({
             className="font-display text-5xl font-bold leading-none"
             style={{ color: glow, textShadow: `0 0 32px ${glow}70` }}
           >
-            {winner === "outsider" ? "Mafia Wins" : "Civilians Win"}
+            {winner === "outsider" ? "Mafia Wins" : "Town Wins"}
           </span>
         </div>
 
@@ -72,7 +72,7 @@ export function ResultsScreen({
                   background: `${p.isOutsider ? "var(--outsider-glow)" : "var(--civilian-glow)"}1f`,
                 }}
               >
-                {p.isOutsider ? "Mafia" : "Civilian"}
+                {p.isOutsider ? "Mafia" : "Town"}
               </span>
             </div>
           ))}
