@@ -14,9 +14,20 @@ export function toPlayerView(p: MafiaPlayerView): PlayerView {
 // e.g. `${roleGlow(role)}33`. A `var(--x)33` string is invalid CSS and silently drops.
 export const MAFIA_GLOW = "#e64a5e";
 export const TOWN_GLOW = "#8ff0c4";
+export const SHERIFF_GLOW = "#f3cd7e"; // gold — the investigator
+export const ANGEL_GLOW = "#a99cff"; // lavender — the protector
 
 export function roleGlow(role: PlayerRole | null): string {
-  return role === "mafia" ? MAFIA_GLOW : TOWN_GLOW;
+  switch (role) {
+    case "mafia":
+      return MAFIA_GLOW;
+    case "sheriff":
+      return SHERIFF_GLOW;
+    case "angel":
+      return ANGEL_GLOW;
+    default:
+      return TOWN_GLOW;
+  }
 }
 
 export const ROLE_LABEL: Record<PlayerRole, string> = {
