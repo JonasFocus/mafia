@@ -111,9 +111,16 @@ export function RoleCard({
                   {isOutsider ? (
                     <>
                       {showCategory && (
-                        <span className="text-xs tracking-widest uppercase text-foreground-muted">{category}</span>
+                        <span
+                          className="rounded-full px-3 py-0.5 text-[11px] tracking-wide uppercase text-foreground-muted"
+                          style={{ background: "var(--surface)", boxShadow: "var(--elevation-1)" }}
+                        >
+                          {category}
+                        </span>
                       )}
-                      <span className="text-xs tracking-widest uppercase text-foreground-muted">You are the</span>
+                      <span className="mt-1 text-xs tracking-widest uppercase text-foreground-muted">
+                        You are the
+                      </span>
                       <span
                         className="font-display text-4xl font-bold"
                         style={{ color: glow, textShadow: `0 0 24px ${glow}66` }}
