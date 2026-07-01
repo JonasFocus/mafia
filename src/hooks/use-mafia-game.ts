@@ -24,13 +24,14 @@ export function useMafiaGame(roomCode: string) {
         supabase.auth.getUser(),
       ]);
       if (!playerRows) return;
-      const ids = playerRows.map((p) => p.user_id!).filter(Boolean);
+      const rows = playerRows.filter((p): p is typeof p & { user_id: string } => p.user_id !== null);
+      const ids = rows.map((p) => p.user_id);
       const { data: userRows } = await supabase.from("users").select("id, display_name").in("id", ids);
       const nameById = new Map(userRows?.map((u) => [u.id, u.display_name]) ?? []);
       setPlayers(
-        playerRows.map((p) => ({
-          userId: p.user_id!,
-          displayName: nameById.get(p.user_id!) ?? "Player",
+        rows.map((p) => ({
+          userId: p.user_id,
+          displayName: nameById.get(p.user_id) ?? "Player",
           isEliminated: !!p.is_eliminated,
           role: p.role,
           joinOrder: p.join_order ?? 0,
