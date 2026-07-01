@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { PlayerGrid } from "@/components/game/PlayerGrid";
 import { Button } from "@/components/ui/Button";
@@ -29,25 +29,37 @@ export function DayResultScreen({
     [players],
   );
 
-  const victims = useMemo(() => {
-    if (typeof window === "undefined") return eliminated;
-    const key = `mafia:${game.id}:deadSeen`;
-    let prevSeen: string[] = [];
+  // Read the "already seen dead" snapshot ONCE via a lazy state initializer. The
+  // previous code *wrote* sessionStorage during render (inside useMemo), which can
+  // double-fire under StrictMode/refresh — the second pass reads back the ids it
+  // just wrote, computes an empty diff, and silently flips a death to "No one
+  // died". The write now lives in an effect after commit.
+  const [prevSeen] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
     try {
-      prevSeen = JSON.parse(sessionStorage.getItem(key) ?? "[]") as string[];
+      return JSON.parse(sessionStorage.getItem(`mafia:${game.id}:deadSeen`) ?? "[]") as string[];
     } catch {
-      prevSeen = [];
+      return [];
     }
-    const currentIds = eliminated.map((p) => p.userId);
+  });
+
+  const victims = useMemo(() => {
     const seededBefore = prevSeen.length > 0;
     const fresh = eliminated.filter((p) => !prevSeen.includes(p.userId));
-    try {
-      sessionStorage.setItem(key, JSON.stringify(currentIds));
-    } catch {
-      // sessionStorage unavailable; fall through with best-effort diff
-    }
     // Only trust the diff once we've observed a prior snapshot in this browser.
     return seededBefore ? fresh : fresh.length === 1 ? fresh : [];
+  }, [eliminated, prevSeen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      sessionStorage.setItem(
+        `mafia:${game.id}:deadSeen`,
+        JSON.stringify(eliminated.map((p) => p.userId)),
+      );
+    } catch {
+      // sessionStorage unavailable; best-effort
+    }
   }, [eliminated, game.id]);
 
   const noOneDied = victims.length === 0;

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import type { GameMode, NightActionType } from "@/lib/game/types";
+import type { Database } from "@/lib/supabase/database.types";
 
 const ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I ambiguity
 
@@ -39,33 +40,30 @@ export async function createGame(
   throw new Error("Could not generate a unique room code, please try again");
 }
 
-export async function joinGame(userId: string, roomCode: string) {
+// Join by code via a SECURITY DEFINER RPC. A direct client-side select is blocked
+// by RLS for a non-participant (games are readable only by host/existing players),
+// so a first-time joiner would always get "Room not found". The RPC validates
+// existence/status/capacity and inserts the player row atomically. Requires an
+// established session first (ensureGuestSession) so auth.uid() is set.
+export async function joinGame(roomCode: string) {
   const supabase = createClient();
-
-  const { data: game, error: gameError } = await supabase
-    .from("games")
-    .select("*")
-    .eq("room_code", roomCode.toUpperCase())
-    .maybeSingle();
-  if (gameError) throw gameError;
-  if (!game) throw new Error("Room not found");
-  if (game.status !== "lobby") throw new Error("This game has already started");
-
-  const { data: playerCount, error: countError } = await supabase.rpc("count_game_players", {
-    p_game_id: game.id,
+  const { data, error } = await supabase.rpc("join_game", {
+    p_room_code: roomCode.toUpperCase(),
   });
-  if (countError) throw countError;
-  if ((playerCount ?? 0) >= 8) throw new Error("This room is full");
-
-  const { error: joinError } = await supabase
-    .from("game_players")
-    .upsert(
-      { game_id: game.id, user_id: userId, join_order: playerCount ?? 0 },
-      { onConflict: "game_id,user_id", ignoreDuplicates: true },
-    );
-  if (joinError) throw joinError;
-
+  if (error) throw new Error(error.message);
+  const game = data?.[0];
+  if (!game) throw new Error("Room not found");
   return game;
+}
+
+export type OpenGame = Database["public"]["Functions"]["list_open_games"]["Returns"][number];
+
+/** Public list of open (lobby) games for the home-screen "active games" list. */
+export async function listOpenGames(): Promise<OpenGame[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.rpc("list_open_games");
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function startGame(gameId: string) {

@@ -344,6 +344,24 @@ export type Database = {
         Args: { p_game_id: string; p_target_id: string }
         Returns: undefined
       }
+      join_game: {
+        Args: { p_room_code: string }
+        Returns: {
+          game_mode: string
+          id: string
+          room_code: string
+        }[]
+      }
+      list_open_games: {
+        Args: never
+        Returns: {
+          created_at: string
+          game_mode: string
+          host_name: string
+          player_count: number
+          room_code: string
+        }[]
+      }
     }
     Enums: {
       game_status:

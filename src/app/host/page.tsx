@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { ensureGuestSession } from "@/lib/game/auth";
+import { ensureGuestSession, getStoredName, setStoredName } from "@/lib/game/auth";
 import { createGame } from "@/lib/game/actions";
 import { Button } from "@/components/ui/Button";
 import { CategorySpinner } from "@/components/game/CategorySpinner";
@@ -14,26 +14,50 @@ import type { GameMode } from "@/lib/game/types";
 
 export default function HostPage() {
   const router = useRouter();
-  const [name, setName] = useState("");
+  const [name, setName] = useState(() => getStoredName());
   const [mode, setMode] = useState<GameMode>("chameleon");
   const [categories, setCategories] = useState<Tables<"categories">[]>([]);
   const [categoryId, setCategoryId] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState(false);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase
+    createClient()
       .from("categories")
       .select("*")
       .order("name")
-      .then(({ data }) => {
-        if (data) {
-          setCategories(data);
-          setCategoryId(data[0]?.id ?? "");
+      .then(({ data, error: fetchError }) => {
+        if (fetchError || !data) {
+          setCategoriesError(true);
+          setCategoriesLoading(false);
+          return;
         }
+        setCategories(data);
+        setCategoryId((prev) => prev || data[0]?.id || "");
+        setCategoriesLoading(false);
       });
   }, []);
+
+  function retryCategories() {
+    setCategoriesError(false);
+    setCategoriesLoading(true);
+    createClient()
+      .from("categories")
+      .select("*")
+      .order("name")
+      .then(({ data, error: fetchError }) => {
+        if (fetchError || !data) {
+          setCategoriesError(true);
+          setCategoriesLoading(false);
+          return;
+        }
+        setCategories(data);
+        setCategoryId((prev) => prev || data[0]?.id || "");
+        setCategoriesLoading(false);
+      });
+  }
 
   async function handleHost(e: React.FormEvent) {
     e.preventDefault();
@@ -41,6 +65,7 @@ export default function HostPage() {
     setLoading(true);
     setError(null);
     try {
+      setStoredName(name.trim());
       const userId = await ensureGuestSession(name.trim());
       const game = await createGame(userId, categoryId, mode);
       router.push(`/game/${game.room_code}`);
@@ -94,7 +119,11 @@ export default function HostPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             maxLength={20}
-            placeholder="Jonas"
+            placeholder="Your name"
+            type="text"
+            autoComplete="name"
+            autoCapitalize="words"
+            spellCheck={false}
             className="h-14 rounded-2xl bg-surface px-5 text-base outline-none focus:ring-2 focus:ring-accent transition-shadow"
             style={{ boxShadow: "var(--elevation-1)" }}
             autoFocus
@@ -113,8 +142,27 @@ export default function HostPage() {
                 className="relative rounded-3xl bg-surface-raised p-3"
                 style={{ boxShadow: "var(--elevation-2)" }}
               >
-                {categories.length > 0 && (
+                {categoriesLoading ? (
+                  <div className="flex h-[180px] items-center justify-center">
+                    <span className="text-sm text-foreground-muted">Loading categories…</span>
+                  </div>
+                ) : categoriesError ? (
+                  <div className="flex h-[180px] flex-col items-center justify-center gap-3">
+                    <span className="text-sm text-foreground-muted">Couldn&rsquo;t load categories.</span>
+                    <button
+                      type="button"
+                      onClick={retryCategories}
+                      className="text-sm font-semibold text-accent-bright"
+                    >
+                      Retry
+                    </button>
+                  </div>
+                ) : categories.length > 0 ? (
                   <CategorySpinner categories={categories} value={categoryId} onChange={setCategoryId} />
+                ) : (
+                  <div className="flex h-[180px] items-center justify-center">
+                    <span className="text-sm text-foreground-muted">No categories available.</span>
+                  </div>
                 )}
               </div>
             </div>

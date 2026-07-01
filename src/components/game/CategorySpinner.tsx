@@ -5,7 +5,7 @@ import { CATEGORY_ICONS } from "@/lib/game/category-icons";
 import type { Tables } from "@/lib/supabase/database.types";
 
 const ITEM_HEIGHT = 60;
-const VISIBLE_HEIGHT = ITEM_HEIGHT * 5; // 5 rows tall, center row is the selection
+const VISIBLE_HEIGHT = ITEM_HEIGHT * 3; // 3 rows tall, center row is the selection
 
 export function CategorySpinner({
   categories,
@@ -109,7 +109,7 @@ export function CategorySpinner({
                 if (el) itemRefs.current.set(c.id, el);
               }}
               onClick={() => handleTap(c.id)}
-              className="relative z-20 flex w-full items-center justify-center gap-2 font-display font-semibold"
+              className="relative z-20 flex w-full items-center justify-center gap-2 px-4 font-display font-semibold"
               style={{
                 height: ITEM_HEIGHT,
                 scrollSnapAlign: "center",
@@ -119,8 +119,8 @@ export function CategorySpinner({
                 fontSize: 17,
               }}
             >
-              <span>{CATEGORY_ICONS[c.name] ?? "🎲"}</span>
-              <span>{c.name}</span>
+              <span className="shrink-0">{CATEGORY_ICONS[c.name] ?? "🎲"}</span>
+              <span className="min-w-0 truncate">{c.name}</span>
             </button>
           );
         })}

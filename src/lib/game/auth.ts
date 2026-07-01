@@ -27,3 +27,24 @@ export async function ensureGuestSession(displayName: string) {
 
   return user.id;
 }
+
+const STORED_NAME_KEY = "mafia:player-name";
+
+/** Last display name the player entered, remembered across games on this device. */
+export function getStoredName(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    return window.localStorage.getItem(STORED_NAME_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function setStoredName(name: string) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(STORED_NAME_KEY, name);
+  } catch {
+    // localStorage unavailable (private mode / blocked) — skip persistence.
+  }
+}

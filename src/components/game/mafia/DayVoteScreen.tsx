@@ -104,7 +104,7 @@ export function DayVoteScreen({
             className="relative flex flex-1 flex-col items-center px-6 py-8 safe-top safe-bottom gap-6 w-full max-w-sm mx-auto"
           >
             <div className="flex flex-col items-center gap-1 text-center">
-              <h2 className="font-display text-2xl font-bold">Who gets lynched?</h2>
+              <h2 className="font-display text-2xl font-bold">Who do you vote out?</h2>
               <p className="text-sm text-foreground-muted">Your vote is secret. A tie means no one.</p>
             </div>
 
