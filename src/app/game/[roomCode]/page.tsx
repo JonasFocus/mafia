@@ -80,6 +80,7 @@ export default function GamePage({ params }: { params: Promise<{ roomCode: strin
               isOutsider={!!me?.isOutsider}
               word={wordText}
               category={categoryName}
+              showCategories={game.show_categories}
             />
           )}
 

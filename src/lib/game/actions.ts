@@ -46,16 +46,16 @@ export async function joinGame(userId: string, roomCode: string) {
   if (!game) throw new Error("Room not found");
   if (game.status !== "lobby") throw new Error("This game has already started");
 
-  const { count } = await supabase
-    .from("game_players")
-    .select("*", { count: "exact", head: true })
-    .eq("game_id", game.id);
-  if ((count ?? 0) >= 8) throw new Error("This room is full");
+  const { data: playerCount, error: countError } = await supabase.rpc("count_game_players", {
+    p_game_id: game.id,
+  });
+  if (countError) throw countError;
+  if ((playerCount ?? 0) >= 8) throw new Error("This room is full");
 
   const { error: joinError } = await supabase
     .from("game_players")
     .upsert(
-      { game_id: game.id, user_id: userId, join_order: count ?? 0 },
+      { game_id: game.id, user_id: userId, join_order: playerCount ?? 0 },
       { onConflict: "game_id,user_id", ignoreDuplicates: true },
     );
   if (joinError) throw joinError;
@@ -66,6 +66,19 @@ export async function joinGame(userId: string, roomCode: string) {
 export async function startGame(gameId: string) {
   const supabase = createClient();
   const { error } = await supabase.rpc("start_game", { p_game_id: gameId });
+  if (error) throw error;
+}
+
+export async function updateGameSettings(
+  gameId: string,
+  settings: { mafiaCount?: number; showCategories?: boolean },
+) {
+  const supabase = createClient();
+  const update: { mafia_count?: number; show_categories?: boolean } = {};
+  if (settings.mafiaCount !== undefined) update.mafia_count = settings.mafiaCount;
+  if (settings.showCategories !== undefined) update.show_categories = settings.showCategories;
+
+  const { error } = await supabase.from("games").update(update).eq("id", gameId);
   if (error) throw error;
 }
 

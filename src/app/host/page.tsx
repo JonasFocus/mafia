@@ -53,7 +53,7 @@ export default function HostPage() {
         ← Back
       </Link>
 
-      <form onSubmit={handleHost} className="flex-1 flex flex-col w-full max-w-sm mx-auto gap-8">
+      <form onSubmit={handleHost} className="relative flex-1 flex flex-col w-full max-w-sm mx-auto gap-8">
         <h1 className="font-display text-3xl font-bold tracking-tight">Host a Game</h1>
 
         <div className="flex flex-col gap-2">
@@ -67,16 +67,27 @@ export default function HostPage() {
             maxLength={20}
             placeholder="Jonas"
             className="h-14 rounded-2xl bg-surface px-5 text-base outline-none focus:ring-2 focus:ring-accent transition-shadow"
-            style={{ boxShadow: "inset 0 0 0 1px var(--surface-border)" }}
+            style={{ boxShadow: "var(--elevation-1)" }}
             autoFocus
           />
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="relative flex flex-col gap-3">
           <span className="text-sm text-foreground-muted text-center">Category</span>
-          {categories.length > 0 && (
-            <CategorySpinner categories={categories} value={categoryId} onChange={setCategoryId} />
-          )}
+          <div className="relative">
+            <div
+              className="spotlight-pulse pointer-events-none absolute top-1/2 left-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-10"
+              style={{ background: "radial-gradient(circle, var(--accent), transparent 70%)" }}
+            />
+            <div
+              className="relative rounded-3xl bg-surface-raised p-3"
+              style={{ boxShadow: "var(--elevation-2)" }}
+            >
+              {categories.length > 0 && (
+                <CategorySpinner categories={categories} value={categoryId} onChange={setCategoryId} />
+              )}
+            </div>
+          </div>
         </div>
 
         <div className="flex-1" />

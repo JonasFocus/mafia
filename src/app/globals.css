@@ -2,17 +2,36 @@
 
 :root {
   --background: #0a0912;
+  --background-deep: #050308;
   --surface: #17151f;
   --surface-raised: #211e2d;
+  --surface-overlay: #2b2739;
   --surface-border: rgba(255, 255, 255, 0.07);
+  --surface-border-strong: rgba(255, 255, 255, 0.14);
   --foreground: #f3f2f8;
   --foreground-muted: #94909f;
   --accent: #8b7bff;
   --accent-bright: #a99cff;
+  --accent-deep: #5c4dd6;
   --accent-foreground: #0a0912;
   --civilian-glow: #8ff0c4;
-  --outsider-glow: #e6b3ea;
+  --outsider-glow: #e64a5e;
   --gold-glow: #f3cd7e;
+  --shadow-color: rgba(0, 0, 0, 0.55);
+
+  --elevation-1: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+  --elevation-2: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 var(--surface-border-strong);
+  --elevation-3: 0 2px 4px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
 
   /* iPhone safe-area passthrough */
   --safe-top: env(safe-area-inset-top);
@@ -23,13 +42,17 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-deep: var(--background-deep);
   --color-surface: var(--surface);
   --color-surface-raised: var(--surface-raised);
+  --color-surface-overlay: var(--surface-overlay);
   --color-surface-border: var(--surface-border);
+  --color-surface-border-strong: var(--surface-border-strong);
   --color-foreground: var(--foreground);
   --color-foreground-muted: var(--foreground-muted);
   --color-accent: var(--accent);
   --color-accent-bright: var(--accent-bright);
+  --color-accent-deep: var(--accent-deep);
   --color-accent-foreground: var(--accent-foreground);
   --color-civilian-glow: var(--civilian-glow);
   --color-outsider-glow: var(--outsider-glow);

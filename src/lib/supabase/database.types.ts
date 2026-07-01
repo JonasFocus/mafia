@@ -71,8 +71,10 @@ export type Database = {
           ended_at: string | null
           host_id: string
           id: string
+          mafia_count: number
           max_rounds: number
           room_code: string
+          show_categories: boolean
           status: Database["public"]["Enums"]["game_status"]
           word_id: string | null
         }
@@ -83,8 +85,10 @@ export type Database = {
           ended_at?: string | null
           host_id: string
           id?: string
+          mafia_count?: number
           max_rounds?: number
           room_code: string
+          show_categories?: boolean
           status?: Database["public"]["Enums"]["game_status"]
           word_id?: string | null
         }
@@ -95,8 +99,10 @@ export type Database = {
           ended_at?: string | null
           host_id?: string
           id?: string
+          mafia_count?: number
           max_rounds?: number
           room_code?: string
+          show_categories?: boolean
           status?: Database["public"]["Enums"]["game_status"]
           word_id?: string | null
         }
@@ -227,6 +233,7 @@ export type Database = {
     }
     Functions: {
       start_game: { Args: { p_game_id: string }; Returns: undefined }
+      count_game_players: { Args: { p_game_id: string }; Returns: number }
     }
     Enums: {
       game_status:

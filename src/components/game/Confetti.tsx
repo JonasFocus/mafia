@@ -1,22 +1,29 @@
 "use client";
 
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 
-const COLORS = ["#8b7bff", "#8ff0c4", "#e6b3ea", "#f3cd7e", "#7ec8f3"];
-const PIECES = Array.from({ length: 26 }, (_, i) => ({
-  id: i,
-  left: Math.random() * 100,
-  delay: Math.random() * 0.4,
-  duration: 2.2 + Math.random() * 1.2,
-  rotate: Math.random() * 360,
-  color: COLORS[i % COLORS.length],
-  size: 6 + Math.random() * 6,
-}));
+const CIVILIAN_COLORS = ["#8ff0c4", "#f3cd7e", "#8b7bff", "#7ec8f3", "#a99cff"];
+const MAFIA_COLORS = ["#e64a5e", "#f3cd7e", "#8b7bff", "#f39e8e", "#ff7a8a"];
 
-export function Confetti() {
+function makePieces(colors: string[]) {
+  return Array.from({ length: 26 }, (_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    delay: Math.random() * 0.4,
+    duration: 2.2 + Math.random() * 1.2,
+    rotate: Math.random() * 360,
+    color: colors[i % colors.length],
+    size: 6 + Math.random() * 6,
+  }));
+}
+
+export function Confetti({ variant = "civilian" }: { variant?: "civilian" | "mafia" }) {
+  const pieces = useMemo(() => makePieces(variant === "mafia" ? MAFIA_COLORS : CIVILIAN_COLORS), [variant]);
+
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {PIECES.map((p) => (
+      {pieces.map((p) => (
         <motion.span
           key={p.id}
           initial={{ y: -20, x: 0, opacity: 1, rotate: 0 }}

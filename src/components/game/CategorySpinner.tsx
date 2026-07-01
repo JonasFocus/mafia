@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import { CATEGORY_ICONS } from "@/lib/game/category-icons";
 import type { Tables } from "@/lib/supabase/database.types";
 
-const ITEM_HEIGHT = 56;
+const ITEM_HEIGHT = 60;
 const VISIBLE_HEIGHT = ITEM_HEIGHT * 5; // 5 rows tall, center row is the selection
 
 export function CategorySpinner({
@@ -75,16 +75,20 @@ export function CategorySpinner({
   return (
     <div className="relative" style={{ height: VISIBLE_HEIGHT }}>
       <div
-        className="pointer-events-none absolute inset-x-0 top-1/2 -translate-y-1/2 rounded-2xl z-0"
-        style={{ height: ITEM_HEIGHT, background: "color-mix(in srgb, var(--accent) 14%, transparent)" }}
+        className="pointer-events-none absolute inset-x-1 top-1/2 -translate-y-1/2 rounded-2xl z-0"
+        style={{
+          height: ITEM_HEIGHT,
+          background: "linear-gradient(180deg, var(--accent-bright), var(--accent))",
+          boxShadow: "var(--elevation-3)",
+        }}
       />
       <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-10 z-10"
-        style={{ background: "linear-gradient(to bottom, var(--background), transparent)" }}
+        className="pointer-events-none absolute inset-x-0 top-0 h-12 z-10"
+        style={{ background: "linear-gradient(to bottom, var(--surface-raised), transparent)" }}
       />
       <div
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-10 z-10"
-        style={{ background: "linear-gradient(to top, var(--background), transparent)" }}
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-12 z-10"
+        style={{ background: "linear-gradient(to top, var(--surface-raised), transparent)" }}
       />
 
       <div
@@ -111,7 +115,7 @@ export function CategorySpinner({
                 scrollSnapAlign: "center",
                 transform: `scale(${s})`,
                 opacity: 0.35 + s * 0.65,
-                color: selected ? "var(--foreground)" : "var(--foreground-muted)",
+                color: selected ? "var(--accent-foreground)" : "var(--foreground-muted)",
                 fontSize: 17,
               }}
             >

@@ -38,35 +38,40 @@ export default function JoinPage() {
       <form onSubmit={handleJoin} className="flex-1 flex flex-col w-full max-w-sm mx-auto gap-8">
         <h1 className="font-display text-3xl font-bold tracking-tight">Join a Game</h1>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="roomCode" className="text-sm text-foreground-muted">
-            Room code
-          </label>
-          <input
-            id="roomCode"
-            value={roomCode}
-            onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
-            maxLength={4}
-            placeholder="AB3K"
-            className="h-16 rounded-2xl bg-surface px-4 text-3xl tracking-[0.35em] text-center font-display font-semibold outline-none focus:ring-2 focus:ring-accent"
-            style={{ boxShadow: "inset 0 0 0 1px var(--surface-border)" }}
-            autoFocus
-          />
-        </div>
+        <div
+          className="flex flex-col gap-6 rounded-3xl bg-surface-raised p-5"
+          style={{ boxShadow: "var(--elevation-2)" }}
+        >
+          <div className="flex flex-col gap-2">
+            <label htmlFor="roomCode" className="text-sm text-foreground-muted">
+              Room code
+            </label>
+            <input
+              id="roomCode"
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+              maxLength={4}
+              placeholder="AB3K"
+              className="h-16 rounded-2xl bg-surface px-4 text-3xl tracking-[0.35em] text-center font-display font-semibold outline-none focus:ring-2 focus:ring-accent transition-shadow"
+              style={{ boxShadow: "var(--elevation-1)" }}
+              autoFocus
+            />
+          </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="name" className="text-sm text-foreground-muted">
-            Your name
-          </label>
-          <input
-            id="name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={20}
-            placeholder="Jonas"
-            className="h-14 rounded-2xl bg-surface px-5 text-base outline-none focus:ring-2 focus:ring-accent"
-            style={{ boxShadow: "inset 0 0 0 1px var(--surface-border)" }}
-          />
+          <div className="flex flex-col gap-2">
+            <label htmlFor="name" className="text-sm text-foreground-muted">
+              Your name
+            </label>
+            <input
+              id="name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={20}
+              placeholder="Jonas"
+              className="h-14 rounded-2xl bg-surface px-5 text-base outline-none focus:ring-2 focus:ring-accent transition-shadow"
+              style={{ boxShadow: "var(--elevation-1)" }}
+            />
+          </div>
         </div>
 
         <div className="flex-1" />
