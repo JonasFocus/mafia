@@ -1,34 +1,59 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
-import { useGame } from "@/hooks/use-game";
+import { motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
-import { LobbyScreen } from "@/components/game/LobbyScreen";
-import { HintPhaseScreen } from "@/components/game/HintPhaseScreen";
-import { VotingScreen } from "@/components/game/VotingScreen";
-import { ResultsScreen } from "@/components/game/ResultsScreen";
 import { MafiaGame } from "@/components/game/mafia/MafiaGame";
+import { ChameleonGame } from "@/components/game/ChameleonGame";
+import { GameErrorScreen } from "@/components/game/GameErrorScreen";
+import type { GameMode } from "@/lib/game/types";
 
 export default function GamePage({ params }: { params: Promise<{ roomCode: string }> }) {
   const { roomCode } = use(params);
-  const { userId, game, players, round, hintedPlayerIds, myVoteCast, wordText, loading, error } =
-    useGame(roomCode);
-  const [categoryName, setCategoryName] = useState("");
+  const [meta, setMeta] = useState<{ mode: GameMode; userId: string; isHost: boolean } | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
+  // Resolve only the game mode (and who the host is) here, then hand off to a
+  // single mode-specific component. This avoids running both useGame and
+  // useMafiaGame at once, which doubled the realtime channels and refetches.
   useEffect(() => {
-    if (!game?.category_id) return;
-    const supabase = createClient();
-    supabase
-      .from("categories")
-      .select("name")
-      .eq("id", game.category_id)
-      .maybeSingle()
-      .then(({ data }) => setCategoryName(data?.name ?? ""));
-  }, [game?.category_id]);
+    let cancelled = false;
+    (async () => {
+      const supabase = createClient();
+      const [
+        {
+          data: { user },
+        },
+        { data: g, error: gErr },
+      ] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase.from("games").select("game_mode, host_id").eq("room_code", roomCode.toUpperCase()).maybeSingle(),
+      ]);
+      if (cancelled) return;
+      if (gErr) {
+        setError("Couldn’t load the game. Check your connection and try again.");
+        return;
+      }
+      if (!g || !user) {
+        setError("Room not found");
+        return;
+      }
+      setMeta({
+        mode: (g.game_mode as GameMode) ?? "chameleon",
+        userId: user.id,
+        isHost: g.host_id === user.id,
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [roomCode]);
 
-  if (loading) {
+  if (error) {
+    return <GameErrorScreen error={error} />;
+  }
+
+  if (!meta) {
     return (
       <main className="flex flex-1 items-center justify-center safe-top safe-bottom">
         <motion.div
@@ -41,88 +66,8 @@ export default function GamePage({ params }: { params: Promise<{ roomCode: strin
     );
   }
 
-  if (error || !game || !userId) {
-    return (
-      <main className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center safe-top safe-bottom">
-        <p className="text-foreground-muted">{error ?? "Something went wrong"}</p>
-        <div className="flex w-full max-w-xs flex-col items-center gap-3">
-          {error !== "Room not found" && error !== "This game has ended" && (
-            <button
-              type="button"
-              onClick={() => window.location.reload()}
-              className="flex h-12 w-full items-center justify-center rounded-full font-display font-semibold text-accent-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              style={{
-                background: "linear-gradient(180deg, var(--accent-bright), var(--accent))",
-                boxShadow: "inset 0 -3px 0 var(--accent-deep), 0 4px 0 var(--accent-deep), 0 6px 14px rgba(0,0,0,0.4)",
-              }}
-            >
-              Try again
-            </button>
-          )}
-          <Link href="/" className="text-sm font-medium text-foreground-muted">
-            Back to home
-          </Link>
-        </div>
-      </main>
-    );
+  if (meta.mode === "mafia") {
+    return <MafiaGame roomCode={roomCode} userId={meta.userId} isHost={meta.isHost} />;
   }
-
-  const me = players.find((p) => p.userId === userId);
-  const isHost = game.host_id === userId;
-
-  if (game.game_mode === "mafia") {
-    return <MafiaGame roomCode={roomCode} userId={userId} isHost={isHost} />;
-  }
-
-  return (
-    <main className="flex flex-1 flex-col">
-      <AnimatePresence mode="wait">
-        <motion.div
-          key={game.status}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -12 }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-          className="flex flex-1 flex-col"
-        >
-          {game.status === "lobby" && (
-            <LobbyScreen
-              game={game}
-              players={players}
-              isHost={isHost}
-              categoryName={categoryName}
-              userId={userId}
-            />
-          )}
-
-          {(game.status === "hint_phase" || game.status === "role_reveal") && round && (
-            <HintPhaseScreen
-              userId={userId}
-              players={players}
-              round={round}
-              hintedIds={hintedPlayerIds}
-              isOutsider={!!me?.isOutsider}
-              word={wordText}
-              category={categoryName}
-              showCategories={game.show_categories}
-            />
-          )}
-
-          {game.status === "voting" && round && (
-            <VotingScreen userId={userId} players={players} round={round} myVoteCast={myVoteCast} />
-          )}
-
-          {game.status === "round_result" && (
-            <div className="flex flex-1 items-center justify-center safe-top safe-bottom">
-              <p className="text-foreground-muted">Tallying votes…</p>
-            </div>
-          )}
-
-          {game.status === "game_over" && (
-            <ResultsScreen players={players} word={wordText} category={categoryName} />
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </main>
-  );
+  return <ChameleonGame roomCode={roomCode} userId={meta.userId} isHost={meta.isHost} />;
 }

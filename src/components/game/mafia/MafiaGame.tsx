@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useMafiaGame } from "@/hooks/use-mafia-game";
 import { LobbyScreen } from "@/components/game/LobbyScreen";
 import { PlayerGrid } from "@/components/game/PlayerGrid";
+import { GameErrorScreen } from "@/components/game/GameErrorScreen";
 import { MafiaRoleReveal } from "./MafiaRoleReveal";
 import { NightScreen } from "./NightScreen";
 import { DayResultScreen } from "./DayResultScreen";
@@ -50,11 +51,7 @@ export function MafiaGame({
   }
 
   if (error || !game) {
-    return (
-      <main className="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center safe-top safe-bottom">
-        <p className="text-foreground-muted">{error ?? "Something went wrong"}</p>
-      </main>
-    );
+    return <GameErrorScreen error={error ?? "Something went wrong"} />;
   }
 
   return (
