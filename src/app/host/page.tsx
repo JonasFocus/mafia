@@ -197,7 +197,7 @@ export default function HostPage() {
         {error && <p className="text-sm text-outsider-glow text-center">{error}</p>}
 
         <p className="text-center text-xs text-foreground-muted">
-          {mode === "mafia" ? "Best with 5–8 players" : "Best with 4–8 players"}
+          {mode === "mafia" ? "For 5–25 players" : "Best with 4–8 players"}
         </p>
 
         <Button type="submit" disabled={loading || !name.trim() || !categoryId} className="w-full">

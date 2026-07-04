@@ -150,6 +150,7 @@ export type Database = {
           game_mode: string
           host_id: string
           id: string
+          last_lynch_victim: string | null
           last_night_victim: string | null
           mafia_count: number
           max_rounds: number
@@ -171,6 +172,7 @@ export type Database = {
           game_mode?: string
           host_id: string
           id?: string
+          last_lynch_victim?: string | null
           last_night_victim?: string | null
           mafia_count?: number
           max_rounds?: number
@@ -192,6 +194,7 @@ export type Database = {
           game_mode?: string
           host_id?: string
           id?: string
+          last_lynch_victim?: string | null
           last_night_victim?: string | null
           mafia_count?: number
           max_rounds?: number
@@ -215,6 +218,13 @@ export type Database = {
           {
             foreignKeyName: "games_host_id_fkey"
             columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "games_last_lynch_victim_fkey"
+            columns: ["last_lynch_victim"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]
@@ -547,6 +557,7 @@ export type Database = {
         | "night"
         | "day_result"
         | "day_vote"
+        | "lynch_result"
       night_action_type: "kill" | "inspect" | "protect"
       player_role: "faithful" | "mafia" | "sheriff" | "angel"
     }
@@ -686,6 +697,7 @@ export const Constants = {
         "night",
         "day_result",
         "day_vote",
+        "lynch_result",
       ],
       night_action_type: ["kill", "inspect", "protect"],
       player_role: ["faithful", "mafia", "sheriff", "angel"],

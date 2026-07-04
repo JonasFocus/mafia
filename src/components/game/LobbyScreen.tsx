@@ -46,7 +46,8 @@ export function LobbyScreen({
     setInviteUrl(`${window.location.origin}/join?code=${game.room_code}`);
   }, [game.room_code]);
   const minPlayers = isMafia ? 5 : 4;
-  const canStart = players.length >= minPlayers && players.length <= 8;
+  const maxPlayers = isMafia ? 25 : 8;
+  const canStart = players.length >= minPlayers && players.length <= maxPlayers;
   const maxMafia = Math.max(1, Math.floor((players.length - 1) / 2));
   const mafiaCount = mafiaCountOverride ?? game.mafia_count;
   const showCategories = showCategoriesOverride ?? game.show_categories;
@@ -230,7 +231,7 @@ export function LobbyScreen({
             className="text-sm text-foreground-muted font-mono px-2 py-0.5 rounded-full"
             style={{ background: "var(--surface)", boxShadow: "var(--elevation-1)" }}
           >
-            {players.length}/8
+            {players.length}/{maxPlayers}
           </span>
         </div>
         <PlayerGrid players={players} meId={userId} hostUserId={game.host_id} />
@@ -246,7 +247,7 @@ export function LobbyScreen({
               ? "Start Game"
               : players.length < minPlayers
                 ? `Need ${minPlayers - players.length} more player${minPlayers - players.length === 1 ? "" : "s"}`
-                : "Too many players (max 8)"}
+                : `Too many players (max ${maxPlayers})`}
         </Button>
       ) : (
         <p className="relative text-sm text-foreground-muted">Waiting for the host to start…</p>
