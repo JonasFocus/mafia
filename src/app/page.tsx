@@ -210,7 +210,7 @@ export default function HomePage() {
                   <div className="flex-1 min-w-0">
                     <p className="font-display font-semibold truncate">{g.host_name}</p>
                     <p className="text-xs text-foreground-muted">
-                      {isMafia ? "Classic Mafia" : "Chameleon"} · {g.player_count}/8
+                      {isMafia ? "Classic Mafia" : "Chameleon"} · {g.player_count}/{isMafia ? 25 : 8}
                     </p>
                   </div>
                   <span className="shrink-0 text-sm text-foreground-muted">

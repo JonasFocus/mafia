@@ -50,6 +50,7 @@ export function NightScreen({
   void me;
   const [selected, setSelected] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const acted = myNightAction != null;
   const hasNightRole = myRole !== "faithful";
@@ -108,8 +109,11 @@ export function NightScreen({
   async function handleSubmit() {
     if (!selected) return;
     setSubmitting(true);
+    setError(null);
     try {
       await onSubmit(config.type, selected);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not submit — try again");
     } finally {
       setSubmitting(false);
     }
@@ -117,7 +121,7 @@ export function NightScreen({
 
   return (
     <NightShell role={myRole}>
-      <div className="flex flex-1 flex-col items-center gap-6 w-full max-w-sm mx-auto">
+      <div className="flex flex-1 flex-col items-center gap-6 w-full max-w-sm mx-auto overflow-y-auto">
         <Header role={myRole} />
 
         <p className="text-sm text-foreground-muted text-center">
@@ -150,6 +154,8 @@ export function NightScreen({
             ({plurality.count} pick{plurality.count > 1 ? "s" : ""})
           </p>
         )}
+
+        {error && <p className="text-sm text-outsider-glow text-center">{error}</p>}
 
         <Button
           onClick={handleSubmit}

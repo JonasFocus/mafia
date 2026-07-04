@@ -174,6 +174,14 @@ export function useMafiaGame(roomCode: string) {
     return () => clearInterval(interval);
   }, [game?.status, game?.id, refetchPlayers]);
 
+  // Post-submit catch-up: realtime normally echoes our own insert back, but a
+  // dropped event would leave the UI on the action form (or "Casting vote…")
+  // until the next visibility change. Callers refetch right after a successful
+  // submit so `acted`/`myDayVoteCast` never depend on the socket.
+  const refetchCurrent = useCallback(async () => {
+    if (gameIdRef.current) await refetchGame(gameIdRef.current);
+  }, [refetchGame]);
+
   const me = players.find((p) => p.userId === userId);
   const myRole: PlayerRole | null = me?.role ?? null;
   const fellowMafia =
@@ -200,6 +208,7 @@ export function useMafiaGame(roomCode: string) {
     myNightAction,
     myInspectResult,
     myDayVoteCast,
+    refetchCurrent,
     loading,
     error,
   };

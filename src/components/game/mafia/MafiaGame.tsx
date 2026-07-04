@@ -10,6 +10,7 @@ import { MafiaRoleReveal } from "./MafiaRoleReveal";
 import { NightScreen } from "./NightScreen";
 import { DayResultScreen } from "./DayResultScreen";
 import { DayVoteScreen } from "./DayVoteScreen";
+import { LynchResultScreen } from "./LynchResultScreen";
 import { MafiaResultsScreen } from "./MafiaResultsScreen";
 import { beginNight, beginDayVote, submitNightAction, castDayVote } from "@/lib/game/actions";
 import { toPlayerView } from "./shared";
@@ -34,6 +35,7 @@ export function MafiaGame({
     myNightAction,
     myInspectResult,
     myDayVoteCast,
+    refetchCurrent,
     loading,
     error,
   } = useMafiaGame(roomCode);
@@ -105,9 +107,10 @@ export function MafiaGame({
                 myNightAction={myNightAction}
                 myInspectResult={myInspectResult}
                 userId={userId}
-                onSubmit={(actionType: NightActionType, targetId: string) =>
-                  submitNightAction(game.id, actionType, targetId)
-                }
+                onSubmit={async (actionType: NightActionType, targetId: string) => {
+                  await submitNightAction(game.id, actionType, targetId);
+                  await refetchCurrent();
+                }}
               />
             ))}
 
@@ -131,9 +134,22 @@ export function MafiaGame({
                 me={me}
                 userId={userId}
                 myDayVoteCast={myDayVoteCast}
-                onVote={(targetId: string) => castDayVote(game.id, targetId)}
+                onVote={async (targetId: string) => {
+                  await castDayVote(game.id, targetId);
+                  await refetchCurrent();
+                }}
               />
             ))}
+
+          {game.status === "lynch_result" && (
+            <LynchResultScreen
+              game={game}
+              players={players}
+              userId={userId}
+              isHost={isHost}
+              onBeginNight={() => beginNight(game.id)}
+            />
+          )}
 
           {game.status === "game_over" && (
             <MafiaResultsScreen

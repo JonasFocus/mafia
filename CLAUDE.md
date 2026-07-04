@@ -20,6 +20,8 @@ Party game (Chameleon/Outsider-style + a Classic Mafia mode). Solo mobile-first 
 ## Database
 - Schema/migrations in `supabase/migrations/`, applied in filename (timestamp) order.
 - Key tables: `users`, `categories`, `games`, `game_players` (+ redacted `game_players_public` view), `rounds`, `hints_given`, `votes`, plus Mafia-mode: `night_actions`, `day_votes` (`player_role`: faithful/mafia/sheriff/angel).
+- Mafia phase loop (2026-07-04): `role_reveal → night → day_result → day_vote → lynch_result → night …`. `resolve_day` lands on `lynch_result` (outcome on `games.last_lynch_victim`, null = tie); `begin_night` owns the round increment and only accepts `role_reveal`/`lynch_result` — never `day_result` (same-round re-entry replayed the previous night's actions). Caps: mafia rooms 25 players / chameleon 8 (`join_game`), `mafia_count` 1–8. Sheriff inspects lock to their first target each night (same-target re-submit is idempotent, retarget errors) — don't restore the blind upsert, it let a sheriff scan the whole table pre-resolution. Player self-DELETE on `game_players` and host settings UPDATE on `games` are lobby-only policies.
+- Engine test suite: `supabase/tests/run.sh` spins up a throwaway local PG16, applies all migrations in order, and runs full-game scenarios, RLS checks, and two-connection concurrency races. Run it after touching any game-logic SQL.
 - Generated TS types: `src/lib/supabase/database.types.ts` (regenerate with the Supabase MCP `generate_typescript_types` tool or `supabase gen types` after any schema change).
 
 ### Security model (hardened 2026-07-01 — don't loosen without thought)

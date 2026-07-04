@@ -16,7 +16,10 @@ export function MafiaSettings({ game, playerCount }: { game: Game; playerCount: 
   const sheriffEnabled = sheriffOverride ?? game.sheriff_enabled;
   const angelEnabled = angelOverride ?? game.angel_enabled;
 
-  const maxMafia = Math.max(1, Math.floor((playerCount - 1) / 2));
+  // DB constraint caps mafia_count at 8; the engine additionally requires
+  // mafia < half the table at start.
+  const maxMafia = Math.min(8, Math.max(1, Math.floor((playerCount - 1) / 2)));
+  const mafiaOptions = [1, 2, 3, 4, 5, 6, 7, 8];
   const showParityWarning = mafiaCount === Math.floor((playerCount - 1) / 2) && playerCount < 7;
 
   async function handleMafiaCountChange(value: number) {
@@ -64,7 +67,7 @@ export function MafiaSettings({ game, playerCount }: { game: Game; playerCount: 
           onChange={handleMafiaCountChange}
           min={1}
           max={maxMafia}
-          options={[1, 2, 3]}
+          options={mafiaOptions}
           disabledCaption={(o) => `Need ${o * 2 + 1}+ players`}
         />
         {showParityWarning && (
