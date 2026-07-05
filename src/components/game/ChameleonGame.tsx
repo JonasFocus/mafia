@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { LobbyScreen } from "@/components/game/LobbyScreen";
 import { HintPhaseScreen } from "@/components/game/HintPhaseScreen";
 import { VotingScreen } from "@/components/game/VotingScreen";
+import { SpectatorScreen } from "@/components/game/SpectatorScreen";
 import { ResultsScreen } from "@/components/game/ResultsScreen";
 import { GameErrorScreen } from "@/components/game/GameErrorScreen";
 import { HostSkipButton } from "@/components/game/HostSkipButton";
@@ -77,15 +78,23 @@ export function ChameleonGame({
             />
           )}
 
-          {game.status === "voting" && round && (
-            <VotingScreen
-              userId={userId}
-              players={players}
-              round={round}
-              votedIds={votedPlayerIds}
-              myVoteCast={myVoteCast}
-            />
-          )}
+          {game.status === "voting" &&
+            round &&
+            (me?.isEliminated ? (
+              <SpectatorScreen
+                emoji="🗳️"
+                message="You were voted out. Watch the town hunt the mafia."
+                players={players}
+              />
+            ) : (
+              <VotingScreen
+                userId={userId}
+                players={players}
+                round={round}
+                votedIds={votedPlayerIds}
+                myVoteCast={myVoteCast}
+              />
+            ))}
 
           {game.status === "round_result" && (
             <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 text-center safe-top safe-bottom">
