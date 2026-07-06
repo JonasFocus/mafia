@@ -63,6 +63,7 @@
   --color-angel-glow: var(--angel-glow);
   --font-sans: var(--font-inter);
   --font-display: var(--font-cormorant);
+  --font-serif-accent: var(--font-instrument-serif);
 }
 
 html {
@@ -215,6 +216,58 @@ body::after {
   height: 58%;
   background: currentColor;
   box-shadow: -9px 7px 0 -4px currentColor, 9px 7px 0 -4px currentColor;
+}
+
+/* ---- Landing page (marketing) utilities ------------------------------- */
+
+.landing-serif {
+  font-family: var(--font-instrument-serif), var(--font-display), serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* Subtle square-grid "floor" behind the hero, faded out radially. */
+.landing-grid-floor {
+  background-image:
+    linear-gradient(rgba(245, 238, 231, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 238, 231, 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 62% 55% at 50% 38%, black 30%, transparent 78%);
+}
+
+/* Blurred crimson spotlight centered behind the hero copy. */
+.landing-spotlight {
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--accent) 26%, transparent),
+    color-mix(in srgb, var(--accent) 8%, transparent) 42%,
+    transparent 70%
+  );
+  filter: blur(48px);
+}
+
+/* Bottom vignette that settles the hero into the page background. */
+.landing-vignette {
+  background: radial-gradient(125% 125% at 50% 100%, transparent 0%, var(--background) 78%);
+}
+
+/* Hairline top border highlight for glass panels. */
+.landing-glass {
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  border: 1px solid var(--surface-border);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 248, 235, 0.06),
+    0 24px 70px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+}
+
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 color-mix(in srgb, var(--civilian-glow) 45%, transparent); }
+  50% { opacity: 0.7; box-shadow: 0 0 0 5px transparent; }
+}
+.landing-live-dot {
+  animation: live-pulse 2.4s ease-in-out infinite;
 }
 
 .floating-card {

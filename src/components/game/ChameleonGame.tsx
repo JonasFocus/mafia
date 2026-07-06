@@ -21,7 +21,8 @@ export function ChameleonGame({
   userId: string;
   isHost: boolean;
 }) {
-  const { game, players, round, hintedPlayerIds, votedPlayerIds, myVoteCast, wordText, error } = useGame(roomCode);
+  const { game, players, round, hintedPlayerIds, votedPlayerIds, myVoteCast, wordText, error, refetchCurrent } =
+    useGame(roomCode);
   const [categoryName, setCategoryName] = useState("");
 
   useEffect(() => {
@@ -65,18 +66,26 @@ export function ChameleonGame({
             />
           )}
 
-          {(game.status === "hint_phase" || game.status === "role_reveal") && round && (
-            <HintPhaseScreen
-              userId={userId}
-              players={players}
-              round={round}
-              hintedIds={hintedPlayerIds}
-              isOutsider={!!me?.isOutsider}
-              word={wordText}
-              category={categoryName}
-              showCategories={game.show_categories}
-            />
-          )}
+          {(game.status === "hint_phase" || game.status === "role_reveal") &&
+            round &&
+            (me?.isEliminated ? (
+              <SpectatorScreen
+                phase="day"
+                message="You were voted out. Watch the town hunt the mafia."
+                players={players}
+              />
+            ) : (
+              <HintPhaseScreen
+                userId={userId}
+                players={players}
+                round={round}
+                hintedIds={hintedPlayerIds}
+                isOutsider={!!me?.isOutsider}
+                word={wordText}
+                category={categoryName}
+                showCategories={game.show_categories}
+              />
+            ))}
 
           {game.status === "voting" &&
             round &&
@@ -114,7 +123,7 @@ export function ChameleonGame({
       </AnimatePresence>
 
       {isHost && (game.status === "hint_phase" || game.status === "voting") && (
-        <HostSkipButton gameId={game.id} />
+        <HostSkipButton gameId={game.id} onAdvanced={refetchCurrent} />
       )}
     </main>
   );

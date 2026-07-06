@@ -87,7 +87,10 @@ export function MafiaGame({
               myRole={myRole}
               fellowMafia={fellowMafia}
               isHost={isHost}
-              onBeginNight={() => beginNight(game.id)}
+              onBeginNight={async () => {
+                await beginNight(game.id);
+                await refetchCurrent();
+              }}
             />
           )}
 
@@ -123,7 +126,10 @@ export function MafiaGame({
               game={game}
               players={players}
               isHost={isHost}
-              onBeginVote={() => beginDayVote(game.id)}
+              onBeginVote={async () => {
+                await beginDayVote(game.id);
+                await refetchCurrent();
+              }}
             />
           )}
 
@@ -155,7 +161,10 @@ export function MafiaGame({
               players={players}
               userId={userId}
               isHost={isHost}
-              onBeginNight={() => beginNight(game.id)}
+              onBeginNight={async () => {
+                await beginNight(game.id);
+                await refetchCurrent();
+              }}
             />
           )}
 
@@ -170,7 +179,7 @@ export function MafiaGame({
       </AnimatePresence>
 
       {isHost && (game.status === "night" || game.status === "day_vote") && (
-        <HostSkipButton gameId={game.id} />
+        <HostSkipButton gameId={game.id} onAdvanced={refetchCurrent} />
       )}
     </main>
   );

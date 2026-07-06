@@ -42,10 +42,12 @@ export function VotingScreen({
     setChipDrop(true);
     try {
       await castVote(round.id, userId, selected);
+      // Success: myVoteCast flips via realtime refetch; clear local busy state either way.
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not cast vote");
-      setSubmitting(false);
       setChipDrop(false);
+    } finally {
+      setSubmitting(false);
       submittingRef.current = false;
     }
   }

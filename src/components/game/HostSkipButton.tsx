@@ -5,7 +5,13 @@ import { forceAdvancePhase } from "@/lib/game/actions";
 
 /** Host-only escape hatch shown during phases that wait on all players. Resolves
  * the phase with whatever has been submitted, recovering from an abandoned player. */
-export function HostSkipButton({ gameId }: { gameId: string }) {
+export function HostSkipButton({
+  gameId,
+  onAdvanced,
+}: {
+  gameId: string;
+  onAdvanced?: () => void | Promise<void>;
+}) {
   const [busy, setBusy] = useState(false);
 
   async function handle() {
@@ -13,6 +19,7 @@ export function HostSkipButton({ gameId }: { gameId: string }) {
     setBusy(true);
     try {
       await forceAdvancePhase(gameId);
+      await onAdvanced?.();
     } catch {
       // best-effort; the phase may have already resolved
     } finally {

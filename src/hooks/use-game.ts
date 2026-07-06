@@ -188,5 +188,21 @@ export function useGame(roomCode: string) {
     return () => clearInterval(interval);
   }, [game?.status, game?.id, refetchPlayers]);
 
-  return { userId, game, players, round, hintedPlayerIds, votedPlayerIds, myVoteCast, wordText, loading, error };
+  const refetchCurrent = useCallback(() => {
+    if (gameIdRef.current) return refetchGame(gameIdRef.current);
+  }, [refetchGame]);
+
+  return {
+    userId,
+    game,
+    players,
+    round,
+    hintedPlayerIds,
+    votedPlayerIds,
+    myVoteCast,
+    wordText,
+    loading,
+    error,
+    refetchCurrent,
+  };
 }
