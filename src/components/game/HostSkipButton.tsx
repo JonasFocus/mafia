@@ -32,7 +32,7 @@ export function HostSkipButton({ gameId }: { gameId: string }) {
         boxShadow: "var(--elevation-2)",
       }}
     >
-      {busy ? "Skipping…" : "Skip phase ›"}
+      {busy ? "Skipping..." : "Skip phase"}
     </button>
   );
 }

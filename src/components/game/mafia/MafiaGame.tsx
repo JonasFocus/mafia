@@ -96,7 +96,7 @@ export function MafiaGame({
             myRole &&
             (me.isEliminated ? (
               <SpectatorScreen
-                emoji="🌙"
+                phase="night"
                 message="The town sleeps. Watch how the night unfolds."
                 players={players.map(toPlayerView)}
               />
@@ -131,7 +131,7 @@ export function MafiaGame({
             me &&
             (me.isEliminated ? (
               <SpectatorScreen
-                emoji="☀️"
+                phase="day"
                 message="Watch the town decide who to vote out."
                 players={players.map(toPlayerView)}
               />

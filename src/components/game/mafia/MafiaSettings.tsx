@@ -19,7 +19,7 @@ export function MafiaSettings({ game, playerCount }: { game: Game; playerCount: 
   // DB constraint caps mafia_count at 8; the engine additionally requires
   // mafia < half the table at start.
   const maxMafia = Math.min(8, Math.max(1, Math.floor((playerCount - 1) / 2)));
-  const mafiaOptions = [1, 2, 3, 4, 5, 6, 7, 8];
+  const mafiaOptions = Array.from({ length: 8 }, (_, index) => index + 1);
   const showParityWarning = mafiaCount === Math.floor((playerCount - 1) / 2) && playerCount < 7;
 
   async function handleMafiaCountChange(value: number) {

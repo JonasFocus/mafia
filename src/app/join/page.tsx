@@ -47,19 +47,31 @@ export default function JoinPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col overflow-y-auto px-6 py-8 safe-top safe-bottom">
+    <main className="relative flex flex-1 flex-col overflow-y-auto px-5 py-6 safe-top safe-bottom sm:px-8">
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(72% 38% at 50% 0%, color-mix(in srgb, var(--civilian-glow) 12%, transparent), transparent 72%)",
+        }}
+      />
       <Link
         href="/"
-        className="text-foreground-muted text-sm mb-6 w-fit rounded outline-none transition-colors hover:text-foreground active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent"
+        className="relative mb-6 w-fit rounded-[10px] border border-surface-border bg-background/50 px-3 py-2 text-sm text-foreground-muted outline-none transition-colors hover:text-foreground active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent"
       >
-        ← Back
+        Back
       </Link>
 
-      <form onSubmit={handleJoin} className="flex-1 flex flex-col w-full max-w-sm mx-auto gap-8">
-        <h1 className="font-display text-3xl font-bold tracking-tight">Join a Game</h1>
+      <form onSubmit={handleJoin} className="relative mx-auto flex w-full max-w-md flex-1 flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <h1 className="font-display text-5xl font-semibold leading-none">Join a game</h1>
+          <p className="max-w-sm text-sm leading-6 text-foreground-muted">
+            Enter the room code and take your seat before the round starts.
+          </p>
+        </div>
 
         <div
-          className="flex flex-col gap-6 rounded-3xl bg-surface-raised p-5"
+          className="noir-panel-soft flex flex-col gap-6 rounded-[22px] p-5"
           style={{ boxShadow: "var(--elevation-2)" }}
         >
           <div className="flex flex-col gap-2">
@@ -77,8 +89,8 @@ export default function JoinPage() {
               autoCapitalize="characters"
               autoCorrect="off"
               spellCheck={false}
-              className="h-16 rounded-2xl bg-surface px-4 text-3xl tracking-[0.35em] text-center font-display font-semibold outline-none focus:ring-2 focus:ring-accent transition-shadow"
-              style={{ boxShadow: "var(--elevation-1)", textIndent: "0.35em" }}
+              className="h-20 rounded-[16px] border border-surface-border bg-background px-4 text-center font-display text-5xl font-semibold tracking-[0.28em] outline-none transition-shadow placeholder:text-foreground-muted focus:ring-2 focus:ring-accent"
+              style={{ boxShadow: "var(--elevation-1)", textIndent: "0.35em", color: "var(--accent-bright)" }}
               autoFocus
             />
           </div>
@@ -98,7 +110,7 @@ export default function JoinPage() {
               autoComplete="name"
               autoCapitalize="words"
               spellCheck={false}
-              className="h-14 rounded-2xl bg-surface px-5 text-base outline-none focus:ring-2 focus:ring-accent transition-shadow"
+              className="h-14 rounded-[14px] border border-surface-border bg-surface px-5 text-base outline-none transition-shadow focus:ring-2 focus:ring-accent"
               style={{ boxShadow: "var(--elevation-1)" }}
             />
           </div>
@@ -113,7 +125,7 @@ export default function JoinPage() {
           disabled={loading || !name.trim() || roomCode.trim().length < 4}
           className="w-full"
         >
-          {loading ? "Joining…" : "Join Room"}
+          {loading ? "Joining..." : "Join Room"}
         </Button>
       </form>
     </main>

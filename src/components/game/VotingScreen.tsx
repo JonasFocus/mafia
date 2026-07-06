@@ -75,10 +75,8 @@ export function VotingScreen({
             <motion.span
               animate={{ scale: [1, 1.15, 1] }}
               transition={{ duration: 1.4, repeat: Infinity }}
-              className="text-4xl"
-            >
-              🗳️
-            </motion.span>
+              className="role-mark h-16 w-16 text-gold-glow"
+            />
             <VoteCounterCard players={votable} votedIds={votedIds} meId={userId} />
           </motion.div>
         ) : (
@@ -109,7 +107,7 @@ export function VotingScreen({
 
             {error && <p className="text-sm text-outsider-glow">{error}</p>}
             <Button onClick={handleVote} disabled={!selected || submitting} className="w-full mt-auto">
-              {submitting ? "Casting vote…" : "Cast Vote"}
+              {submitting ? "Casting vote..." : "Cast Vote"}
             </Button>
           </motion.div>
         )}
@@ -142,7 +140,7 @@ function VoteCounterCard({
         <span className="text-foreground-muted font-normal">voted</span>
       </span>
       {!compact && (
-        <p className="text-sm text-foreground-muted">Waiting for everyone else to lock in their vote…</p>
+        <p className="text-sm text-foreground-muted">Waiting for everyone else to lock in their vote...</p>
       )}
       <div className="flex flex-wrap items-center justify-center gap-2">
         {players.map((p) => {
@@ -173,4 +171,3 @@ function VoteCounterCard({
     </div>
   );
 }
-

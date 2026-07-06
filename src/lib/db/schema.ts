@@ -15,10 +15,27 @@ export const gameStatusEnum = pgEnum("game_status", [
   "voting",
   "round_result",
   "game_over",
+  "night",
+  "day_result",
+  "day_vote",
+  "lynch_result",
+]);
+
+export const playerRoleEnum = pgEnum("player_role", [
+  "faithful",
+  "mafia",
+  "sheriff",
+  "angel",
+]);
+
+export const nightActionTypeEnum = pgEnum("night_action_type", [
+  "kill",
+  "inspect",
+  "protect",
 ]);
 
 export const users = pgTable("users", {
-  id: uuid("id").primaryKey(), // = auth.users.id, or ephemeral guest id
+  id: uuid("id").primaryKey(), // = auth.users.id
   displayName: text("display_name").notNull(),
   avatarUrl: text("avatar_url"),
   isGuest: boolean("is_guest").notNull().default(true),
@@ -49,6 +66,16 @@ export const games = pgTable("games", {
   maxRounds: integer("max_rounds").notNull().default(3),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   endedAt: timestamp("ended_at", { withTimezone: true }),
+  mafiaCount: integer("mafia_count").notNull().default(1),
+  showCategories: boolean("show_categories").notNull().default(false),
+  gameMode: text("game_mode").notNull().default("chameleon"),
+  sheriffEnabled: boolean("sheriff_enabled").notNull().default(true),
+  angelEnabled: boolean("angel_enabled").notNull().default(true),
+  revealRoleOnDeath: boolean("reveal_role_on_death").notNull().default(false),
+  winner: text("winner"),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  lastNightVictim: uuid("last_night_victim").references(() => users.id, { onDelete: "set null" }),
+  lastLynchVictim: uuid("last_lynch_victim").references(() => users.id, { onDelete: "set null" }),
 });
 
 export const gamePlayers = pgTable("game_players", {
@@ -59,6 +86,7 @@ export const gamePlayers = pgTable("game_players", {
   isEliminated: boolean("is_eliminated").notNull().default(false),
   joinOrder: integer("join_order").notNull(),
   joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+  role: playerRoleEnum("role"),
 });
 
 export const rounds = pgTable("rounds", {
@@ -81,4 +109,24 @@ export const votes = pgTable("votes", {
   voterId: uuid("voter_id").notNull().references(() => users.id),
   votedForId: uuid("voted_for_id").notNull().references(() => users.id),
   castAt: timestamp("cast_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const nightActions = pgTable("night_actions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  gameId: uuid("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
+  roundNumber: integer("round_number").notNull(),
+  actorId: uuid("actor_id").notNull().references(() => users.id),
+  actionType: nightActionTypeEnum("action_type").notNull(),
+  targetId: uuid("target_id").notNull().references(() => users.id),
+  result: text("result"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const dayVotes = pgTable("day_votes", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  gameId: uuid("game_id").notNull().references(() => games.id, { onDelete: "cascade" }),
+  roundNumber: integer("round_number").notNull(),
+  voterId: uuid("voter_id").notNull().references(() => users.id),
+  targetId: uuid("target_id").notNull().references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

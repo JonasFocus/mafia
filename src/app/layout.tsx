@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Lexend } from "next/font/google";
+import { Cormorant_Garamond, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -8,27 +8,34 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-const lexend = Lexend({
-  variable: "--font-lexend",
+const cormorant = Cormorant_Garamond({
+  variable: "--font-cormorant",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["500", "600", "700"],
 });
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://mafia-ashy-beta.vercel.app");
+
 export const metadata: Metadata = {
-  title: "Mafia — party game",
+  metadataBase: new URL(siteUrl),
+  title: "Mafia - party game",
   description:
-    "A party game of bluffing and deduction. One of you is faking it — blend in, or expose the impostor.",
+    "A party game of bluffing and deduction. One of you is faking it - blend in, or expose the impostor.",
   applicationName: "Mafia",
   appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Mafia" },
   openGraph: {
-    title: "Mafia — party game",
+    title: "Mafia - party game",
     description: "A party game of bluffing and deduction. One of you is faking it.",
     type: "website",
     siteName: "Mafia",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Mafia — party game",
+    title: "Mafia - party game",
     description: "A party game of bluffing and deduction. One of you is faking it.",
   },
 };
@@ -37,7 +44,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#0a0912",
+  themeColor: "#070506",
 };
 
 export default function RootLayout({
@@ -46,7 +53,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${lexend.variable} h-full antialiased dark`}>
+    <html lang="en" className={`${inter.variable} ${cormorant.variable} h-full antialiased dark`}>
       <body className="min-h-full flex flex-col bg-background text-foreground overflow-x-hidden">
         <Providers>{children}</Providers>
       </body>

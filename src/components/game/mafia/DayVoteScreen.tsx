@@ -84,17 +84,15 @@ export function DayVoteScreen({
             <motion.span
               animate={{ scale: [1, 1.15, 1] }}
               transition={{ duration: 1.4, repeat: Infinity }}
-              className="text-4xl"
-            >
-              🗳️
-            </motion.span>
+              className="role-mark h-16 w-16 text-gold-glow"
+            />
             <div
               className="flex w-full max-w-sm flex-col items-center gap-2 rounded-3xl px-6 py-6 text-center"
               style={{ background: "var(--surface-raised)", boxShadow: "var(--elevation-3)" }}
             >
               <span className="font-display text-lg font-bold">Your vote is in</span>
               <p className="text-sm text-foreground-muted">
-                Waiting for the town to finish voting…
+                Waiting for the town to finish voting...
               </p>
             </div>
           </motion.div>
@@ -128,7 +126,7 @@ export function DayVoteScreen({
             {error && <p className="text-sm text-outsider-glow">{error}</p>}
 
             <Button onClick={handleVote} disabled={!selected || submitting} className="w-full mt-auto">
-              {submitting ? "Casting vote…" : "Cast Vote"}
+              {submitting ? "Casting vote..." : "Cast Vote"}
             </Button>
           </motion.div>
         )}
@@ -136,4 +134,3 @@ export function DayVoteScreen({
     </div>
   );
 }
-

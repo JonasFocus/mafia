@@ -22,7 +22,7 @@ export function CategorySpinner({
   const rafRef = useRef<number | null>(null);
 
   // Write scale/opacity straight to the DOM on each scroll frame rather than
-  // through React state — avoids re-rendering every row on every frame.
+  // through React state, avoiding a re-render for every row on every frame.
   const recompute = useCallback(() => {
     const container = containerRef.current;
     if (!container) return;

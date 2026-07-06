@@ -23,7 +23,7 @@ export function BottomSheet({
       {open && (
         <div className="fixed inset-0 z-[60]">
           <motion.div
-            className="absolute inset-0 bg-black/60"
+            className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -31,11 +31,13 @@ export function BottomSheet({
             onClick={onClose}
           />
           <motion.div
-            className="absolute inset-x-0 bottom-0 rounded-t-3xl flex flex-col"
+            className="absolute inset-x-0 bottom-0 rounded-t-[28px] flex flex-col"
             style={{
-              background: "var(--surface-overlay)",
+              background:
+                "linear-gradient(180deg, color-mix(in srgb, var(--surface-overlay) 96%, transparent), var(--surface))",
               boxShadow: "var(--elevation-3)",
               maxHeight: "85vh",
+              borderTop: "1px solid var(--surface-border-strong)",
             }}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
@@ -47,7 +49,7 @@ export function BottomSheet({
             onDragEnd={handleDragEnd}
           >
             <div className="flex justify-center pt-3 pb-1 shrink-0">
-              <div className="rounded-full" style={{ width: 36, height: 4, background: "var(--surface-border-strong)" }} />
+              <div className="rounded-full" style={{ width: 42, height: 4, background: "var(--surface-border-strong)" }} />
             </div>
             <div className="p-6 overflow-y-auto">{children}</div>
           </motion.div>

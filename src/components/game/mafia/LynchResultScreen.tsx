@@ -62,7 +62,7 @@ export function LynchResultScreen({
           transition={spring}
           className="flex flex-col items-center gap-2 text-center"
         >
-          <span className="text-4xl">⚖️</span>
+          <span className="role-mark h-14 w-14 text-gold-glow" />
           <h2 className="font-display text-2xl font-bold">The town has spoken</h2>
         </motion.div>
 
@@ -83,7 +83,7 @@ export function LynchResultScreen({
               </span>
               {victimIsMe && (
                 <p className="text-xs text-foreground-muted">
-                  That&rsquo;s you — you can keep watching from the afterlife.
+                  That&rsquo;s you. You can keep watching from the afterlife.
                 </p>
               )}
             </>
@@ -113,7 +113,7 @@ export function LynchResultScreen({
               Begin the night
             </Button>
           ) : (
-            <p className="text-center text-sm text-foreground-muted">Waiting for the host…</p>
+            <p className="text-center text-sm text-foreground-muted">Waiting for the host...</p>
           )}
         </div>
       </div>

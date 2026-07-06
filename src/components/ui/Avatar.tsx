@@ -1,12 +1,12 @@
 const RING_COLORS = [
-  "#8b7bff", // accent violet
-  "#8ff0c4", // mint
-  "#e6b3ea", // lavender
-  "#f3cd7e", // gold
-  "#7ec8f3", // sky
-  "#f39e8e", // coral
-  "#b8f38e", // lime
-  "#f38ec9", // pink
+  "#d7a85d", // candle gold
+  "#70d8ae", // mint
+  "#e03f4b", // red
+  "#b9a2ff", // lavender
+  "#d88f61", // copper
+  "#83b7d9", // steel blue
+  "#d6c39a", // parchment
+  "#d07396", // muted rose
 ];
 
 export function ringColorFor(index: number) {
@@ -52,13 +52,13 @@ export function Avatar({
       style={{
         width: size,
         height: size,
-        background: `radial-gradient(circle at 30% 25%, ${fillColor}55, var(--surface-raised) 75%)`,
+        background: `radial-gradient(circle at 32% 24%, ${fillColor}44, var(--surface-overlay) 68%, var(--surface) 100%)`,
         boxShadow: ring
           ? [
-              "inset 0 2px 3px rgba(255,255,255,0.25)",
-              "inset 0 -3px 4px rgba(0,0,0,0.3)",
+              "inset 0 1px 2px rgba(255,246,232,0.24)",
+              "inset 0 -5px 10px rgba(0,0,0,0.34)",
               `0 0 0 2px ${ringColor}`,
-              isActive ? "0 0 0 4px color-mix(in srgb, var(--accent) 15%, transparent)" : "",
+              isActive ? "0 0 0 5px color-mix(in srgb, var(--accent) 16%, transparent)" : "",
             ]
               .filter(Boolean)
               .join(", ")
@@ -77,13 +77,13 @@ export function Avatar({
           style={{
             width: size * 0.4,
             height: size * 0.4,
-            fontSize: size * 0.22,
+            fontSize: size * 0.19,
             background: "var(--gold-glow)",
             color: "var(--background-deep)",
             boxShadow: "var(--elevation-2)",
           }}
         >
-          ★
+          H
         </span>
       )}
     </div>

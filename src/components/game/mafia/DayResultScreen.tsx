@@ -112,7 +112,7 @@ export function DayResultScreen({
               Start the vote
             </Button>
           ) : (
-            <p className="text-center text-sm text-foreground-muted">Waiting for the host…</p>
+            <p className="text-center text-sm text-foreground-muted">Waiting for the host...</p>
           )}
         </div>
       </div>

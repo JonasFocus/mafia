@@ -25,7 +25,7 @@ export function Stepper({
   return (
     <div className="flex flex-col gap-1.5">
       <div
-        className="relative flex rounded-2xl p-1 bg-surface"
+        className="relative flex rounded-[16px] border border-surface-border bg-surface p-1"
         style={{ boxShadow: "var(--elevation-1)" }}
       >
         {segments.map((option) => {
@@ -38,14 +38,17 @@ export function Stepper({
               type="button"
               disabled={isDisabled}
               onClick={() => !isDisabled && onChange(option)}
-              className="relative flex-1 flex items-center justify-center rounded-xl h-11 font-display font-semibold text-base disabled:pointer-events-none"
+              className="relative flex h-11 flex-1 items-center justify-center rounded-[12px] text-base font-semibold disabled:pointer-events-none"
               style={{ opacity: isDisabled ? 0.55 : 1 }}
             >
               {isSelected && !isDisabled && (
                 <motion.div
                   layoutId="stepper-pill"
-                  className="absolute inset-0 rounded-xl"
-                  style={{ background: "var(--accent)", boxShadow: "var(--elevation-3)" }}
+                  className="absolute inset-0 rounded-[12px]"
+                  style={{
+                    background: "linear-gradient(180deg, var(--accent-bright), var(--accent) 58%, var(--accent-deep))",
+                    boxShadow: "var(--elevation-3)",
+                  }}
                   transition={{ type: "spring", stiffness: 400, damping: 28 }}
                 />
               )}

@@ -23,7 +23,7 @@ export function PlayerGrid({
   hostUserId?: string;
 }) {
   if (players.length === 0) {
-    return <p className="py-4 text-center text-sm text-foreground-muted">Waiting for players…</p>;
+    return <p className="py-4 text-center text-sm text-foreground-muted">Waiting for players...</p>;
   }
 
   return (
@@ -61,7 +61,19 @@ export function PlayerGrid({
               onClick={() => selectable && onSelect?.(p.userId)}
               className="flex flex-col items-center gap-1.5 rounded-2xl py-3 px-1 transition-colors"
               style={{
-                background: isSelected ? "color-mix(in srgb, var(--accent) 22%, transparent)" : "transparent",
+                background: isSelected
+                  ? "linear-gradient(180deg, color-mix(in srgb, var(--accent) 18%, transparent), color-mix(in srgb, var(--accent) 6%, transparent))"
+                  : hasHinted || isActive
+                    ? "color-mix(in srgb, var(--surface-raised) 56%, transparent)"
+                    : "color-mix(in srgb, var(--surface) 34%, transparent)",
+                border: `1px solid ${
+                  isSelected
+                    ? "color-mix(in srgb, var(--accent-bright) 46%, transparent)"
+                    : hasHinted || isActive
+                      ? "var(--surface-border-strong)"
+                      : "var(--surface-border)"
+                }`,
+                boxShadow: isSelected ? "var(--elevation-2)" : "inset 0 1px 0 rgba(255,246,232,0.04)",
                 cursor: selectable ? "pointer" : "default",
               }}
             >

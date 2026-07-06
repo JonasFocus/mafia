@@ -82,7 +82,7 @@ export function ChameleonGame({
             round &&
             (me?.isEliminated ? (
               <SpectatorScreen
-                emoji="🗳️"
+                phase="day"
                 message="You were voted out. Watch the town hunt the mafia."
                 players={players}
               />
@@ -101,11 +101,9 @@ export function ChameleonGame({
               <motion.span
                 animate={{ scale: [1, 1.12, 1] }}
                 transition={{ duration: 1.4, repeat: Infinity }}
-                className="text-4xl"
-              >
-                🗳️
-              </motion.span>
-              <p className="font-display text-lg font-semibold">Tallying the votes…</p>
+                className="role-mark h-16 w-16 text-gold-glow"
+              />
+              <p className="font-display text-2xl font-semibold">Tallying the votes...</p>
             </div>
           )}
 

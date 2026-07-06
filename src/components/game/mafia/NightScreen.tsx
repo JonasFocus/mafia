@@ -70,7 +70,7 @@ export function NightScreen({
     if (myRole === "sheriff") {
       return living.filter((p) => p.userId !== userId);
     }
-    // angel — self-protect allowed
+    // Angel self-protect is allowed.
     return living;
   }, [players, myRole, fellowMafia, userId]);
 
@@ -113,7 +113,7 @@ export function NightScreen({
     try {
       await onSubmit(config.type, selected);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not submit — try again");
+      setError(err instanceof Error ? err.message : "Could not submit. Try again.");
     } finally {
       setSubmitting(false);
     }
@@ -162,7 +162,7 @@ export function NightScreen({
           disabled={!selected || submitting}
           className="w-full mt-auto"
         >
-          {submitting ? "Sending…" : config.cta}
+          {submitting ? "Sending..." : config.cta}
         </Button>
       </div>
     </NightShell>
@@ -277,7 +277,7 @@ function InspectResult({
   if (result == null) {
     return (
       <>
-        <h1 className="font-display text-2xl font-semibold">Inspecting…</h1>
+        <h1 className="font-display text-2xl font-semibold">Inspecting...</h1>
         <p className="text-sm text-foreground-muted max-w-[16rem]">
           Waiting on the result for {name}.
         </p>
@@ -307,7 +307,7 @@ function InspectResult({
         {isMafia ? "Mafia" : "Not Mafia"}
       </div>
       <p className="text-xs text-foreground-muted max-w-[16rem]">
-        Alignment only — keep it to yourself until the day.
+        Alignment only. Keep it to yourself until the day.
       </p>
     </motion.div>
   );
@@ -324,7 +324,7 @@ function MoonGlyph() {
         boxShadow: "var(--elevation-2), inset 0 0 20px rgba(0,0,0,0.5)",
       }}
     >
-      <span className="text-3xl">🌙</span>
+      <span className="role-mark h-10 w-10 text-outsider-glow" />
     </motion.div>
   );
 }

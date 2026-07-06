@@ -78,7 +78,7 @@ export function HintPhaseScreen({
       {error && <p className="text-sm text-outsider-glow text-center">{error}</p>}
 
       <Button onClick={handleGiveHint} disabled={alreadyHinted || submitting} className="w-full mt-auto">
-        {alreadyHinted ? "Hint given — waiting on others" : submitting ? "Marking…" : "I've given my hint"}
+        {alreadyHinted ? "Hint given - waiting on others" : submitting ? "Marking..." : "I've given my hint"}
       </Button>
     </div>
   );

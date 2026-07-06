@@ -43,10 +43,12 @@ export function Toggle({
           style={{
             width: 44,
             height: 26,
-            background: checked ? "var(--accent)" : "var(--surface-raised)",
+            background: checked
+              ? "linear-gradient(180deg, var(--accent-bright), var(--accent))"
+              : "var(--surface-raised)",
             boxShadow: checked
-              ? "0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent)"
-              : "inset 0 1px 2px rgba(0,0,0,0.4)",
+              ? "0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent), inset 0 1px 0 rgba(255,255,255,0.18)"
+              : "inset 0 1px 2px rgba(0,0,0,0.4), inset 0 0 0 1px var(--surface-border)",
             transition: "background 0.2s ease, box-shadow 0.2s ease",
           }}
         >

@@ -37,7 +37,7 @@ export function RoleCard({
 
   return (
     <div className="relative w-full max-w-xs mx-auto">
-      {/* directional spotlight, offset top-left — static, not a sweep, cheap on mobile GPUs */}
+      {/* Directional spotlight, offset top-left. Static, not a sweep, so it stays cheap on mobile GPUs. */}
       <motion.div
         className="pointer-events-none absolute -inset-x-4 -top-10 h-64 rounded-full blur-3xl"
         style={{ background: `radial-gradient(circle at 30% 20%, color-mix(in srgb, ${glow} 30%, transparent), transparent 70%)` }}
@@ -49,7 +49,7 @@ export function RoleCard({
         type="button"
         onClick={handleTap}
         aria-label={isOutsider ? "Reveal your role" : "Reveal your secret word"}
-        className="relative block w-full aspect-[3/4] select-none cursor-pointer appearance-none rounded-[32px] outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="relative block w-full aspect-[3/4] select-none cursor-pointer appearance-none rounded-[24px] outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         style={{ perspective: 1400 }}
       >
         <motion.div
@@ -60,30 +60,28 @@ export function RoleCard({
         >
           {/* face-down */}
           <div
-            className="absolute inset-0 rounded-[32px] flex flex-col items-center justify-center gap-3 overflow-hidden"
+            className="absolute inset-0 rounded-[24px] flex flex-col items-center justify-center gap-3 overflow-hidden"
             style={{
               backfaceVisibility: "hidden",
-              background: "linear-gradient(160deg, var(--surface-overlay), var(--surface-raised) 65%, var(--surface))",
+              background:
+                "linear-gradient(160deg, var(--surface-overlay), var(--surface-raised) 60%, var(--surface)), radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 58%)",
               boxShadow:
-                "0 22px 45px -14px rgba(0,0,0,0.75), inset 0 0 0 1px var(--surface-border-strong), var(--elevation-3)",
+                "0 24px 50px -18px rgba(0,0,0,0.82), inset 0 0 0 1px var(--surface-border-strong), var(--elevation-3)",
             }}
           >
             <div
               className="pointer-events-none absolute -inset-x-6 -top-16 h-48 rounded-full blur-3xl"
-              style={{ background: "radial-gradient(circle at 35% 25%, rgba(139,123,255,0.18), transparent 70%)" }}
+              style={{ background: "radial-gradient(circle at 35% 25%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%)" }}
             />
             <motion.div
               animate={{ opacity: locked ? 0 : [0.4, 0.8, 0.4] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="relative h-16 w-16 rounded-2xl flex items-center justify-center font-display text-2xl font-bold"
+              className="role-mark relative h-16 w-16 text-accent-bright"
               style={{
-                background: "color-mix(in srgb, var(--accent) 20%, transparent)",
-                color: "var(--accent-bright)",
+                background: "color-mix(in srgb, var(--accent) 12%, transparent)",
                 boxShadow: "var(--elevation-2)",
               }}
-            >
-              ?
-            </motion.div>
+            />
             {!locked && (
               <span className="relative text-foreground-muted text-xs tracking-widest uppercase">Tap to reveal</span>
             )}
@@ -93,7 +91,7 @@ export function RoleCard({
           <div
             role="status"
             aria-live="polite"
-            className="absolute inset-0 rounded-[32px] flex flex-col items-center justify-center gap-3 px-7 text-center overflow-hidden"
+            className="absolute inset-0 rounded-[24px] flex flex-col items-center justify-center gap-3 px-7 text-center overflow-hidden"
             style={{
               backfaceVisibility: "hidden",
               transform: "rotateY(180deg)",

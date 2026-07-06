@@ -64,7 +64,7 @@ export function MafiaRoleReveal({
         </p>
         {isHost ? (
           <Button className="w-full" onClick={handleBeginNight} disabled={beginning}>
-            {beginning ? "Starting…" : "Begin night"}
+            {beginning ? "Starting..." : "Begin night"}
           </Button>
         ) : (
           <motion.p
@@ -72,7 +72,7 @@ export function MafiaRoleReveal({
             transition={{ duration: 2.4, repeat: Infinity }}
             className="text-center text-sm text-foreground-muted"
           >
-            Waiting for the host to begin the night…
+            Waiting for the host to begin the night...
           </motion.p>
         )}
       </div>

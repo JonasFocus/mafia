@@ -24,7 +24,7 @@ export default function HostPage() {
   const [categoriesError, setCategoriesError] = useState(false);
 
   // Prefill the name from localStorage on mount (not in useState) so SSR and
-  // client markup match — avoids a hydration mismatch.
+  // client markup match and avoid a hydration mismatch.
   useEffect(() => {
     const stored = getStoredName();
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -84,20 +84,32 @@ export default function HostPage() {
   }
 
   return (
-    <main className="flex flex-1 flex-col overflow-y-auto px-6 py-8 safe-top safe-bottom">
+    <main className="relative flex flex-1 flex-col overflow-y-auto px-5 py-6 safe-top safe-bottom sm:px-8">
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(70% 36% at 50% 0%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 72%)",
+        }}
+      />
       <Link
         href="/"
-        className="text-foreground-muted text-sm mb-6 w-fit rounded outline-none transition-colors hover:text-foreground active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent"
+        className="relative mb-6 w-fit rounded-[10px] border border-surface-border bg-background/50 px-3 py-2 text-sm text-foreground-muted outline-none transition-colors hover:text-foreground active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent"
       >
-        ← Back
+        Back
       </Link>
 
-      <form onSubmit={handleHost} className="relative flex-1 flex flex-col w-full max-w-sm mx-auto gap-8">
-        <h1 className="font-display text-3xl font-bold tracking-tight">Host a Game</h1>
+      <form onSubmit={handleHost} className="relative mx-auto flex w-full max-w-md flex-1 flex-col gap-8">
+        <div className="flex flex-col gap-2">
+          <h1 className="font-display text-5xl font-semibold leading-none">Host a game</h1>
+          <p className="max-w-sm text-sm leading-6 text-foreground-muted">
+            Set the table, choose the deception, and bring everyone into one room.
+          </p>
+        </div>
 
         <div
-          className="relative flex rounded-2xl p-1"
-          style={{ background: "var(--surface)", boxShadow: "var(--elevation-1)" }}
+          className="relative flex rounded-[16px] border border-surface-border p-1"
+          style={{ background: "color-mix(in srgb, var(--surface) 86%, transparent)", boxShadow: "var(--elevation-1)" }}
         >
           {(["chameleon", "mafia"] as const).map((m) => {
             const active = mode === m;
@@ -106,14 +118,17 @@ export default function HostPage() {
                 key={m}
                 type="button"
                 onClick={() => setMode(m)}
-                className="relative flex-1 rounded-xl py-3 text-sm font-semibold capitalize"
+                className="relative flex-1 rounded-[12px] py-3 text-sm font-semibold capitalize"
                 style={{ color: active ? "var(--accent-foreground)" : "var(--foreground-muted)" }}
               >
                 {active && (
                   <motion.div
                     layoutId="mode-pill"
-                    className="absolute inset-0 rounded-xl"
-                    style={{ background: "var(--accent)", boxShadow: "var(--elevation-3)" }}
+                    className="absolute inset-0 rounded-[12px]"
+                    style={{
+                      background: "linear-gradient(180deg, var(--accent-bright), var(--accent) 58%, var(--accent-deep))",
+                      boxShadow: "var(--elevation-3)",
+                    }}
                     transition={{ type: "spring", stiffness: 400, damping: 28 }}
                   />
                 )}
@@ -137,7 +152,7 @@ export default function HostPage() {
             autoComplete="name"
             autoCapitalize="words"
             spellCheck={false}
-            className="h-14 rounded-2xl bg-surface px-5 text-base outline-none focus:ring-2 focus:ring-accent transition-shadow"
+            className="h-14 rounded-[14px] border border-surface-border bg-surface px-5 text-base outline-none transition-shadow focus:ring-2 focus:ring-accent"
             style={{ boxShadow: "var(--elevation-1)" }}
             autoFocus
           />
@@ -147,17 +162,14 @@ export default function HostPage() {
           <div className="relative flex flex-col gap-3">
             <span className="text-sm text-foreground-muted text-center">Category</span>
             <div className="relative">
+              <div className="spotlight-pulse pointer-events-none absolute top-1/2 left-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-accent/10 blur-3xl" />
               <div
-                className="spotlight-pulse pointer-events-none absolute top-1/2 left-1/2 h-56 w-56 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl opacity-10"
-                style={{ background: "radial-gradient(circle, var(--accent), transparent 70%)" }}
-              />
-              <div
-                className="relative rounded-3xl bg-surface-raised p-3"
+                className="noir-panel-soft relative rounded-[22px] p-3"
                 style={{ boxShadow: "var(--elevation-2)" }}
               >
                 {categoriesLoading ? (
                   <div className="flex h-[180px] items-center justify-center">
-                    <span className="text-sm text-foreground-muted">Loading categories…</span>
+                    <span className="text-sm text-foreground-muted">Loading categories...</span>
                   </div>
                 ) : categoriesError ? (
                   <div className="flex h-[180px] flex-col items-center justify-center gap-3">
@@ -182,10 +194,10 @@ export default function HostPage() {
           </div>
         ) : (
           <div
-            className="rounded-3xl bg-surface-raised p-5 flex flex-col gap-2"
+            className="noir-panel-soft flex flex-col gap-3 rounded-[22px] p-5"
             style={{ boxShadow: "var(--elevation-2)" }}
           >
-            <span className="font-display text-lg font-bold">Classic Mafia</span>
+            <span className="font-display text-3xl font-semibold leading-none">Classic Mafia</span>
             <span className="text-sm text-foreground-muted leading-relaxed">
               Everyone gets a hidden role. Roles and mafia count are configured in the lobby.
             </span>
@@ -197,11 +209,11 @@ export default function HostPage() {
         {error && <p className="text-sm text-outsider-glow text-center">{error}</p>}
 
         <p className="text-center text-xs text-foreground-muted">
-          {mode === "mafia" ? "For 5–25 players" : "Best with 4–8 players"}
+          {mode === "mafia" ? "Best with 5-25 players" : "Best with 4-8 players"}
         </p>
 
         <Button type="submit" disabled={loading || !name.trim() || !categoryId} className="w-full">
-          {loading ? "Creating room…" : "Create Room"}
+          {loading ? "Creating room..." : "Create Room"}
         </Button>
       </form>
     </main>

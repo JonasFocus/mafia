@@ -1,29 +1,31 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0912;
-  --background-deep: #050308;
-  --surface: #17151f;
-  --surface-raised: #211e2d;
-  --surface-overlay: #2b2739;
-  --surface-border: rgba(255, 255, 255, 0.07);
-  --surface-border-strong: rgba(255, 255, 255, 0.14);
-  --foreground: #f3f2f8;
-  --foreground-muted: #94909f;
-  --accent: #8b7bff;
-  --accent-bright: #a99cff;
-  --accent-deep: #5c4dd6;
-  --accent-foreground: #0a0912;
-  --civilian-glow: #8ff0c4;
-  --outsider-glow: #e64a5e;
-  --gold-glow: #f3cd7e;
-  --shadow-color: rgba(0, 0, 0, 0.55);
+  --background: #070506;
+  --background-deep: #030202;
+  --surface: #111014;
+  --surface-raised: #18151a;
+  --surface-overlay: #21191d;
+  --surface-border: rgba(236, 222, 198, 0.1);
+  --surface-border-strong: rgba(236, 222, 198, 0.2);
+  --foreground: #f5eee7;
+  --foreground-muted: #a3978f;
+  --accent: #b8202b;
+  --accent-bright: #e04b55;
+  --accent-deep: #6f1118;
+  --accent-foreground: #fff7ef;
+  --civilian-glow: #70d8ae;
+  --outsider-glow: #e03f4b;
+  --gold-glow: #d7a85d;
+  --sheriff-glow: #e0c06f;
+  --angel-glow: #b9a2ff;
+  --shadow-color: rgba(0, 0, 0, 0.72);
 
-  --elevation-1: inset 0 1px 0 rgba(255, 255, 255, 0.04), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-  --elevation-2: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35),
-    inset 0 1px 0 var(--surface-border-strong);
-  --elevation-3: 0 2px 4px rgba(0, 0, 0, 0.5), 0 8px 24px rgba(0, 0, 0, 0.45),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  --elevation-1: inset 0 1px 0 rgba(255, 248, 235, 0.05), inset 0 -1px 0 rgba(0, 0, 0, 0.45);
+  --elevation-2: 0 10px 30px rgba(0, 0, 0, 0.34), inset 0 1px 0 var(--surface-border-strong),
+    inset 0 0 0 1px var(--surface-border);
+  --elevation-3: 0 18px 55px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 248, 235, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.45), inset 0 0 0 1px var(--surface-border-strong);
 
   --space-1: 4px;
   --space-2: 8px;
@@ -57,8 +59,10 @@
   --color-civilian-glow: var(--civilian-glow);
   --color-outsider-glow: var(--outsider-glow);
   --color-gold-glow: var(--gold-glow);
+  --color-sheriff-glow: var(--sheriff-glow);
+  --color-angel-glow: var(--angel-glow);
   --font-sans: var(--font-inter);
-  --font-display: var(--font-lexend);
+  --font-display: var(--font-cormorant);
 }
 
 html {
@@ -67,7 +71,8 @@ html {
 
 body {
   background:
-    radial-gradient(ellipse 120% 60% at 50% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 60%),
+    radial-gradient(ellipse 90% 50% at 50% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 62%),
+    radial-gradient(ellipse 80% 45% at 100% 10%, color-mix(in srgb, var(--civilian-glow) 7%, transparent), transparent 55%),
     var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
@@ -78,7 +83,7 @@ body {
   padding-right: env(safe-area-inset-right);
 }
 
-/* Subtle grain — the "phone glowing in a dim room" texture that ties the whole
+/* Subtle grain: the "phone glowing in a dim room" texture that ties the whole
    app to how it's actually played: in person, at night, screens lit low. */
 body::before {
   content: "";
@@ -89,6 +94,20 @@ body::before {
   opacity: 0.05;
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 40;
+  opacity: 0.12;
+  background-image:
+    linear-gradient(var(--surface-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--surface-border) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 70% 45% at 50% 0%, black, transparent 72%);
 }
 
 .safe-top {
@@ -118,10 +137,93 @@ body::before {
   animation: spotlight-pulse 4.5s ease-in-out infinite;
 }
 
-/* Shared accent spotlight glow (home hero, lobby) — one source of truth instead
+/* Shared accent spotlight glow (home hero, lobby): one source of truth instead
    of a bespoke radial-gradient per screen. */
 .spotlight-accent {
-  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 45%, transparent), transparent 70%);
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 38%, transparent), transparent 70%);
+}
+
+.noir-panel {
+  background:
+    linear-gradient(180deg, rgba(255, 246, 232, 0.035), rgba(255, 246, 232, 0)),
+    color-mix(in srgb, var(--surface-raised) 90%, transparent);
+  border: 1px solid var(--surface-border-strong);
+  box-shadow: var(--elevation-3);
+}
+
+.noir-panel-soft {
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--elevation-2);
+}
+
+.room-code-text {
+  background: linear-gradient(180deg, #ff7077, var(--accent-bright) 48%, var(--accent));
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 24px color-mix(in srgb, var(--accent) 42%, transparent));
+}
+
+.accent-rule {
+  background: linear-gradient(90deg, transparent, var(--surface-border-strong), transparent);
+}
+
+.action-glint {
+  position: relative;
+  overflow: hidden;
+}
+
+.action-glint::after {
+  content: "";
+  position: absolute;
+  inset: -40% auto -40% -35%;
+  width: 28%;
+  transform: rotate(12deg);
+  opacity: 0.36;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: button-glint 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes button-glint {
+  0%, 42% { translate: 0 0; }
+  58%, 100% { translate: 520% 0; }
+}
+
+.role-mark {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+.role-mark::before,
+.role-mark::after {
+  content: "";
+  position: absolute;
+  border-radius: inherit;
+}
+
+.role-mark::before {
+  inset: 22%;
+  border: 1px solid currentColor;
+}
+
+.role-mark::after {
+  width: 1px;
+  height: 58%;
+  background: currentColor;
+  box-shadow: -9px 7px 0 -4px currentColor, 9px 7px 0 -4px currentColor;
+}
+
+.floating-card {
+  animation: floating-card 6s ease-in-out infinite;
+}
+
+@keyframes floating-card {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-1deg); }
+  50% { transform: translate3d(0, -8px, 0) rotate(1deg); }
 }
 
 @keyframes pop-in {
@@ -143,5 +245,9 @@ body::before {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .floating-card {
+    animation: none;
   }
 }
