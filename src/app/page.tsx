@@ -12,11 +12,11 @@ import { BottomSheet } from "@/components/ui/BottomSheet";
 const MotionLink = motion.create(Link);
 
 const PREVIEW_PLAYERS = [
-  { name: "Avery", role: "Detective", color: "var(--civilian-glow)" },
+  { name: "Avery", role: "Sheriff", color: "var(--civilian-glow)" },
   { name: "Blake", role: "Mafia", color: "var(--outsider-glow)" },
-  { name: "Casey", role: "Doctor", color: "var(--civilian-glow)" },
-  { name: "Devon", role: "Civilian", color: "var(--gold-glow)" },
-  { name: "Emery", role: "Chameleon", color: "var(--civilian-glow)" },
+  { name: "Casey", role: "Angel", color: "var(--civilian-glow)" },
+  { name: "Devon", role: "Faithful", color: "var(--gold-glow)" },
+  { name: "Emery", role: "Faithful", color: "var(--civilian-glow)" },
   { name: "Gray", role: "Mafia", color: "var(--outsider-glow)" },
 ];
 
@@ -25,14 +25,14 @@ const MODES = [
     title: "Classic Mafia",
     tagline: "Night falls. Someone doesn't wake up.",
     copy: "The mafia knows each other. The town has to read the room — accusations, alibis, and one lynch vote at a time — before night takes over.",
-    players: "4–25 players",
+    players: "5–25 players",
     tone: "var(--outsider-glow)",
     span: "lg:col-span-3",
   },
   {
     title: "Chameleon",
     tagline: "Everyone knows the word. Except one.",
-    copy: "Give a hint that proves you know it — without giving it away to the player who doesn't.",
+    copy: "Give a clue that proves you know it — without giving it away to the player who doesn't.",
     players: "3–8 players",
     tone: "var(--civilian-glow)",
     span: "lg:col-span-2",
@@ -92,6 +92,8 @@ export default function HomePage() {
   const [nameDraft, setNameDraft] = useState("");
   const [joiningCode, setJoiningCode] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [roomsError, setRoomsError] = useState<string | null>(null);
+  const [roomsRefreshVersion, setRoomsRefreshVersion] = useState(0);
 
   useEffect(() => {
     const stored = getStoredName();
@@ -101,27 +103,54 @@ export default function HomePage() {
 
   useEffect(() => {
     let cancelled = false;
-    const load = () => {
-      listOpenGames()
-        .then((open) => {
-          if (!cancelled) setGames(open);
-        })
-        .catch(() => {
-          if (!cancelled) setGames((prev) => prev ?? []);
-        });
-    };
-    load();
-    const interval = setInterval(load, 4000);
+    let loading = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    function clearTimer() {
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    }
+
+    function scheduleNextLoad() {
+      clearTimer();
+      if (!cancelled && document.visibilityState === "visible") {
+        timer = setTimeout(() => void load(), 15_000);
+      }
+    }
+
+    async function load() {
+      if (cancelled || loading || document.visibilityState !== "visible") return;
+      loading = true;
+      try {
+        const open = await listOpenGames();
+        if (!cancelled) {
+          setGames(open);
+          setRoomsError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setRoomsError("Couldn’t load open rooms. Check your connection and try again.");
+        }
+      } finally {
+        loading = false;
+        scheduleNextLoad();
+      }
+    }
+
     const onVisibility = () => {
-      if (document.visibilityState === "visible") load();
+      if (document.visibilityState === "visible") void load();
+      else clearTimer();
     };
+    void load();
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
       cancelled = true;
-      clearInterval(interval);
+      clearTimer();
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, []);
+  }, [roomsRefreshVersion]);
 
   async function doJoin(code: string, name: string) {
     setJoiningCode(code);
@@ -134,9 +163,7 @@ export default function HomePage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not join that game");
       setJoiningCode(null);
-      listOpenGames()
-        .then(setGames)
-        .catch(() => {});
+      setRoomsRefreshVersion((version) => version + 1);
     }
   }
 
@@ -165,18 +192,32 @@ export default function HomePage() {
     <main className="relative flex flex-1 flex-col overflow-hidden">
       <LandingNav />
       <HeroSection />
-      <OpenRoomsSection games={games} joiningCode={joiningCode} onJoinGame={handleCardTap} />
+      <OpenRoomsSection
+        games={games}
+        joiningCode={joiningCode}
+        loadError={roomsError}
+        onRetry={() => setRoomsRefreshVersion((version) => version + 1)}
+        onJoinGame={handleCardTap}
+      />
       <ModesSection />
       <HowItWorksSection />
       <FinalCtaSection />
 
       {error && (
-        <div className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-sm rounded-2xl border border-outsider-glow/40 bg-background px-4 py-3 text-center text-sm text-outsider-glow shadow-2xl">
+        <div
+          role="alert"
+          className="fixed inset-x-4 z-50 mx-auto max-w-sm rounded-2xl border border-outsider-glow/40 bg-background px-4 py-3 text-center text-sm text-outsider-glow shadow-2xl"
+          style={{ bottom: "max(1rem, var(--safe-bottom))" }}
+        >
           {error}
         </div>
       )}
 
-      <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
+      <BottomSheet
+        open={sheetOpen}
+        onClose={() => setSheetOpen(false)}
+        ariaLabel="Join game"
+      >
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1">
             <h3 className="text-2xl font-semibold tracking-tight">What is your name?</h3>
@@ -230,24 +271,27 @@ function LandingNav() {
             : "max-w-5xl rounded-2xl border border-transparent bg-transparent"
         }`}
       >
-        <Link href="/" className="text-base font-semibold tracking-tight text-foreground">
+        <Link
+          href="/"
+          className="flex min-h-11 min-w-11 items-center justify-center text-base font-semibold tracking-tight text-foreground"
+        >
           Mafia
         </Link>
         <div className="hidden items-center gap-1 text-sm md:flex">
           <a
-            className="rounded-full px-3 py-1.5 text-foreground-muted transition-colors hover:bg-surface/80 hover:text-foreground"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-3 py-1.5 text-foreground-muted transition-colors hover:bg-surface/80 hover:text-foreground"
             href="#modes"
           >
             Modes
           </a>
           <a
-            className="rounded-full px-3 py-1.5 text-foreground-muted transition-colors hover:bg-surface/80 hover:text-foreground"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-3 py-1.5 text-foreground-muted transition-colors hover:bg-surface/80 hover:text-foreground"
             href="#how"
           >
             How it works
           </a>
           <Link
-            className="rounded-full px-3 py-1.5 text-foreground-muted transition-colors hover:bg-surface/80 hover:text-foreground"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full px-3 py-1.5 text-foreground-muted transition-colors hover:bg-surface/80 hover:text-foreground"
             href="/join"
           >
             Join
@@ -257,7 +301,7 @@ function LandingNav() {
           href="/host"
           onClick={vibrate}
           whileTap={{ y: 1, scale: 0.98 }}
-          className="rounded-full px-4 py-2 text-sm font-semibold text-accent-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent"
+          className="flex min-h-11 items-center rounded-full px-4 py-2 text-sm font-semibold text-accent-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent"
           style={{
             background: "linear-gradient(180deg, var(--accent-bright), var(--accent) 58%, var(--accent-deep))",
             boxShadow: "inset 0 1px 0 rgba(255,255,255,0.22), 0 8px 22px rgba(184,32,43,0.24)",
@@ -291,7 +335,7 @@ function HeroSection() {
         <motion.div variants={blurIn}>
           <a
             href="#modes"
-            className="group mx-auto flex w-fit items-center gap-3 rounded-full border border-surface-border bg-surface/70 p-1 pl-4 text-sm text-foreground-muted shadow-md shadow-black/30 transition-colors hover:border-surface-border-strong hover:text-foreground"
+            className="group mx-auto flex min-h-11 w-fit items-center gap-3 rounded-full border border-surface-border bg-surface/70 p-1 pl-4 text-sm text-foreground-muted shadow-md shadow-black/30 transition-colors hover:border-surface-border-strong hover:text-foreground"
           >
             <span>Two game modes · No downloads</span>
             <span className="block h-4 w-px bg-surface-border-strong" />
@@ -399,7 +443,7 @@ function HeroRoomPreview() {
         </div>
         <div className="flex items-center gap-2 pt-1">
           <span className="rounded-full border border-surface-border px-2.5 py-1 text-[11px] text-foreground-muted">
-            7/10 players
+            7/25 players
           </span>
           <span className="landing-live-dot mt-px h-2 w-2 rounded-full bg-civilian-glow" />
         </div>
@@ -438,10 +482,14 @@ function HeroRoomPreview() {
 function OpenRoomsSection({
   games,
   joiningCode,
+  loadError,
+  onRetry,
   onJoinGame,
 }: {
   games: OpenGame[] | null;
   joiningCode: string | null;
+  loadError: string | null;
+  onRetry: () => void;
   onJoinGame: (game: OpenGame) => void;
 }) {
   return (
@@ -457,7 +505,7 @@ function OpenRoomsSection({
         <div className="mb-6 flex items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
-              <span className="landing-live-dot h-2 w-2 rounded-full bg-civilian-glow" />
+              <span aria-hidden="true" className="landing-live-dot h-2 w-2 rounded-full bg-civilian-glow" />
               <h2 className="text-xl font-semibold tracking-tight sm:text-2xl">Open rooms</h2>
             </div>
             <p className="mt-1 text-sm text-foreground-muted">
@@ -471,11 +519,29 @@ function OpenRoomsSection({
           )}
         </div>
 
-        {games === null ? (
+        {loadError && (
+          <div
+            role="alert"
+            className="mb-3 flex min-h-14 items-center justify-between gap-3 rounded-[16px] border border-outsider-glow/35 bg-outsider-glow/5 px-4 py-2 text-sm text-outsider-glow"
+          >
+            <span>{loadError}</span>
+            <button
+              type="button"
+              onClick={onRetry}
+              className="flex min-h-11 shrink-0 items-center rounded-[12px] px-3 font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              Retry
+            </button>
+          </div>
+        )}
+
+        {games === null && !loadError ? (
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <span className="sr-only" role="status">Loading open rooms…</span>
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
+                aria-hidden="true"
                 className="flex items-center gap-3 rounded-[16px] border border-surface-border bg-surface/60 px-3 py-3"
               >
                 <div className="h-10 w-10 shrink-0 animate-pulse rounded-full bg-surface-overlay" />
@@ -486,7 +552,7 @@ function OpenRoomsSection({
               </div>
             ))}
           </div>
-        ) : games.length === 0 ? (
+        ) : games === null ? null : games.length === 0 && !loadError ? (
           <div className="rounded-[16px] border border-dashed border-surface-border-strong px-4 py-8 text-center">
             <p className="text-sm text-foreground">No rooms are open right now.</p>
             <p className="mt-1 text-xs text-foreground-muted">Host one — it takes about ten seconds.</p>
@@ -653,13 +719,22 @@ function FinalCtaSection() {
         <div className="mt-14 flex items-center justify-between text-xs text-foreground-muted safe-bottom">
           <span>© {new Date().getFullYear()} Mafia</span>
           <div className="flex items-center gap-4">
-            <a className="transition-colors hover:text-foreground" href="#modes">
+            <a
+              className="inline-flex min-h-11 min-w-11 items-center justify-center transition-colors hover:text-foreground"
+              href="#modes"
+            >
               Modes
             </a>
-            <a className="transition-colors hover:text-foreground" href="#how">
+            <a
+              className="inline-flex min-h-11 min-w-11 items-center justify-center transition-colors hover:text-foreground"
+              href="#how"
+            >
               How it works
             </a>
-            <Link className="transition-colors hover:text-foreground" href="/join">
+            <Link
+              className="inline-flex min-h-11 min-w-11 items-center justify-center transition-colors hover:text-foreground"
+              href="/join"
+            >
               Join
             </Link>
           </div>

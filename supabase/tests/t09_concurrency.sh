@@ -18,9 +18,9 @@ for i in $(seq 1 8); do
       perform test.act(host); perform public.start_mafia_game(g.game_id);
       mafia := (test.living(g.game_id, 'mafia'))[1];
       town := test.living_not(g.game_id, 'mafia');
-      perform test.act(host); perform public.begin_night(g.game_id);
+      perform test.act(host); perform test.begin_night(g.game_id);
       perform test.kill(g.game_id, mafia, town[1]);
-      perform test.act(host); perform public.begin_day_vote(g.game_id);
+      perform test.act(host); perform test.begin_day_vote(g.game_id);
       living := test.living(g.game_id);
       -- first two living vote for the mafia; the last two are cast concurrently below
       perform test.vote(g.game_id, living[1], mafia);
@@ -61,7 +61,7 @@ for i in $(seq 1 8); do
       perform test.act(host); perform public.start_mafia_game(g.game_id);
       mafia := test.living(g.game_id, 'mafia');
       town := test.living_not(g.game_id, 'mafia');
-      perform test.act(host); perform public.begin_night(g.game_id);
+      perform test.act(host); perform test.begin_night(g.game_id);
       create temp table if not exists race2 (gid uuid, a uuid, b uuid, tgt uuid);
       truncate race2;
       insert into race2 values (g.game_id, mafia[1], mafia[2], town[1]);

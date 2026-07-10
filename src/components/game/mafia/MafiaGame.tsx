@@ -6,25 +6,39 @@ import { LobbyScreen } from "@/components/game/LobbyScreen";
 import { GameErrorScreen } from "@/components/game/GameErrorScreen";
 import { HostSkipButton } from "@/components/game/HostSkipButton";
 import { SpectatorScreen } from "@/components/game/SpectatorScreen";
+import { ConnectionBanner } from "@/components/game/ConnectionBanner";
+import { useHostRecovery } from "@/hooks/use-host-recovery";
 import { MafiaRoleReveal } from "./MafiaRoleReveal";
 import { NightScreen } from "./NightScreen";
 import { DayResultScreen } from "./DayResultScreen";
 import { DayVoteScreen } from "./DayVoteScreen";
 import { LynchResultScreen } from "./LynchResultScreen";
 import { MafiaResultsScreen } from "./MafiaResultsScreen";
-import { beginNight, beginDayVote, submitNightAction, castDayVote } from "@/lib/game/actions";
+import {
+  advanceGamePhase,
+  castDayVote,
+  claimRoomHost,
+  closeGame,
+  markPhaseReady,
+  resetGameForRematch,
+  submitNightAction,
+} from "@/lib/game/actions";
 import { toPlayerView } from "./shared";
 import type { NightActionType } from "@/lib/game/types";
 
 export function MafiaGame({
   roomCode,
   userId,
-  isHost,
 }: {
   roomCode: string;
   userId: string;
-  isHost: boolean;
 }) {
+  const state = useMafiaGame(roomCode, userId) as ReturnType<typeof useMafiaGame> & {
+    readyPlayerIds?: string[];
+    canAdvance?: boolean;
+    recoveryAvailable?: boolean;
+    myDayVoteTargetId?: string | null;
+  };
   const {
     game,
     players,
@@ -38,7 +52,16 @@ export function MafiaGame({
     refetchCurrent,
     loading,
     error,
-  } = useMafiaGame(roomCode);
+    connectionState,
+    retryConnection,
+    readyPlayerIds = [],
+    canAdvance = false,
+    recoveryAvailable = false,
+    myDayVoteTargetId = null,
+  } = state;
+  const designatedHostId = game ? (game.dealer_id ?? game.host_id) : null;
+  const currentIsHost = designatedHostId === userId;
+  const canRecoverHost = useHostRecovery(players, designatedHostId, currentIsHost);
 
   if (loading) {
     return (
@@ -59,6 +82,7 @@ export function MafiaGame({
 
   return (
     <main className="flex flex-1 flex-col">
+      <ConnectionBanner state={connectionState} onRetry={retryConnection} />
       <AnimatePresence mode="wait">
         <motion.div
           key={game.status}
@@ -72,7 +96,7 @@ export function MafiaGame({
             <LobbyScreen
               game={game}
               players={players.map(toPlayerView)}
-              isHost={isHost}
+              isHost={currentIsHost}
               categoryName=""
               userId={userId}
               mode="mafia"
@@ -86,9 +110,16 @@ export function MafiaGame({
               me={me}
               myRole={myRole}
               fellowMafia={fellowMafia}
-              isHost={isHost}
+              userId={userId}
+              readyPlayerIds={readyPlayerIds}
+              canAdvance={canAdvance}
+              recoveryAvailable={recoveryAvailable}
+              onReady={async () => {
+                await markPhaseReady(game.id);
+                await refetchCurrent();
+              }}
               onBeginNight={async () => {
-                await beginNight(game.id);
+                await advanceGamePhase(game.id);
                 await refetchCurrent();
               }}
             />
@@ -125,9 +156,16 @@ export function MafiaGame({
             <DayResultScreen
               game={game}
               players={players}
-              isHost={isHost}
+              userId={userId}
+              readyPlayerIds={readyPlayerIds}
+              canAdvance={canAdvance}
+              recoveryAvailable={recoveryAvailable}
+              onReady={async () => {
+                await markPhaseReady(game.id);
+                await refetchCurrent();
+              }}
               onBeginVote={async () => {
-                await beginDayVote(game.id);
+                await advanceGamePhase(game.id);
                 await refetchCurrent();
               }}
             />
@@ -148,6 +186,7 @@ export function MafiaGame({
                 me={me}
                 userId={userId}
                 myDayVoteCast={myDayVoteCast}
+                currentVoteTargetId={myDayVoteTargetId}
                 onVote={async (targetId: string) => {
                   await castDayVote(game.id, targetId);
                   await refetchCurrent();
@@ -160,9 +199,15 @@ export function MafiaGame({
               game={game}
               players={players}
               userId={userId}
-              isHost={isHost}
+              readyPlayerIds={readyPlayerIds}
+              canAdvance={canAdvance}
+              recoveryAvailable={recoveryAvailable}
+              onReady={async () => {
+                await markPhaseReady(game.id);
+                await refetchCurrent();
+              }}
               onBeginNight={async () => {
-                await beginNight(game.id);
+                await advanceGamePhase(game.id);
                 await refetchCurrent();
               }}
             />
@@ -173,12 +218,26 @@ export function MafiaGame({
               game={game}
               players={players}
               winner={game.winner === "mafia" ? "mafia" : "town"}
+              isHost={currentIsHost}
+              canRecoverHost={canRecoverHost}
+              onRematch={async () => {
+                await resetGameForRematch(game.id);
+                await refetchCurrent();
+              }}
+              onClose={async () => {
+                await closeGame(game.id);
+                window.location.assign("/");
+              }}
+              onRecoverHost={async () => {
+                await claimRoomHost(game.id);
+                await refetchCurrent();
+              }}
             />
           )}
         </motion.div>
       </AnimatePresence>
 
-      {isHost && (game.status === "night" || game.status === "day_vote") && (
+      {connectionState === "connected" && recoveryAvailable && (game.status === "night" || game.status === "day_vote") && (
         <HostSkipButton gameId={game.id} onAdvanced={refetchCurrent} />
       )}
     </main>

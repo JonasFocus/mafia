@@ -13,7 +13,7 @@ begin
     perform public.join_game((select room_code from games where id = g.game_id));
   exception when others then
     v_err := true;
-    perform test.ok(sqlerrm like '%full%', '26th gets room-full: ' || sqlerrm);
+    perform test.ok(sqlerrm like '%ROOM_FULL%', '26th gets room-full: ' || sqlerrm);
   end;
   perform test.ok(v_err, '26th player refused');
 
@@ -37,7 +37,7 @@ begin
     perform public.join_game((select room_code from games where id = g.game_id));
   exception when others then
     v_err := true;
-    perform test.ok(sqlerrm like '%already started%', 'late joiner refused: ' || sqlerrm);
+    perform test.ok(sqlerrm like '%GAME_ALREADY_STARTED%', 'late joiner refused: ' || sqlerrm);
   end;
   perform test.ok(v_err, 'no joining mid-game');
   raise notice 't05a caps 25 OK';
@@ -64,14 +64,14 @@ begin
     perform public.start_mafia_game(g.game_id);
   exception when others then
     v_err := true;
-    perform test.ok(sqlerrm like '%not a mafia game%', 'mafia start on chameleon refused');
+    perform test.ok(sqlerrm like '%NOT_A_MAFIA_GAME%', 'mafia start on chameleon refused');
   end;
   perform test.ok(v_err, 'start_mafia_game rejects chameleon lobby');
   perform test.ok(test.status(g.game_id) = 'lobby', 'chameleon lobby untouched');
 
   -- Chameleon start still works (regression) and rejects the other mode.
   perform public.start_game(g.game_id);
-  perform test.ok(test.status(g.game_id) = 'hint_phase', 'chameleon start works');
+  perform test.ok(test.status(g.game_id) = 'role_reveal', 'chameleon start works');
   raise notice 't05b chameleon cap + mode guards OK';
 end $$;
 
@@ -85,7 +85,7 @@ begin
     perform public.start_game(g.game_id);
   exception when others then
     v_err := true;
-    perform test.ok(sqlerrm like '%not a chameleon game%', 'chameleon start on mafia refused');
+    perform test.ok(sqlerrm like '%NOT_A_CHAMELEON_GAME%', 'chameleon start on mafia refused');
   end;
   perform test.ok(v_err, 'start_game rejects mafia lobby');
 
@@ -113,7 +113,7 @@ begin
   begin perform public.start_mafia_game(g.game_id);
   exception when others then
     v_err := true;
-    perform test.ok(sqlerrm like '%too many mafia%', 'mafia majority refused');
+    perform test.ok(sqlerrm like '%TOO_MANY_MAFIA%', 'mafia majority refused');
   end;
   perform test.ok(v_err, '3 mafia in a 5-seat game refused');
 

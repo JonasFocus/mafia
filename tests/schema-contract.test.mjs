@@ -23,6 +23,33 @@ test("local migrations include the live Supabase migration history", () => {
   assert.match(lifecycle, /v_remaining_mafia = 0/);
 });
 
+test("production-readiness migrations expose only participant-safe game contracts", () => {
+  const enums = read("supabase/migrations/20260710140545_production_readiness_enums.sql");
+  const schema = read("supabase/migrations/20260710140550_production_readiness_schema.sql");
+  const functions = read("supabase/migrations/20260710140554_production_readiness_functions.sql");
+  const hints = read("supabase/migrations/20260710145428_secure_chameleon_hints.sql");
+  const tombstone = read("supabase/migrations/20260710160000_snapshot_room_tombstone.sql");
+
+  assert.match(enums, /chameleon_tie_break/);
+  assert.match(enums, /chameleon_guess/);
+  assert.match(schema, /create table if not exists public\.game_secrets/);
+  assert.match(schema, /create table if not exists public\.game_phase_acknowledgements/);
+  assert.match(schema, /unique index if not exists game_players_game_id_join_order_key/);
+  assert.match(schema, /users readable by self/);
+
+  assert.match(functions, /function public\.create_game[\s\S]*for v_attempt in 1\.\.32 loop/);
+  assert.match(functions, /function public\.leave_game[\s\S]*for update/);
+  assert.match(functions, /function public\.advance_game_phase/);
+  assert.match(functions, /interval '120 seconds'/);
+  assert.match(functions, /function public\.get_game_snapshot/);
+  assert.match(functions, /revoke select on public\.words from anon, authenticated/);
+  assert.doesNotMatch(functions, /ROOM_CREATE_RATE_LIMITED/);
+  assert.match(hints, /function public\.submit_chameleon_hint[\s\S]*for update/);
+  assert.match(hints, /revoke insert, update, delete on public\.hints_given/);
+  assert.match(tombstone, /alter function public\.get_game_snapshot\(text\) set schema private/);
+  assert.match(tombstone, /'error_code', 'ROOM_NOT_FOUND'/);
+});
+
 test("generated types and Drizzle schema model live Mafia state", () => {
   const types = read("src/lib/supabase/database.types.ts");
   const schema = read("src/lib/db/schema.ts");
@@ -35,6 +62,9 @@ test("generated types and Drizzle schema model live Mafia state", () => {
   assert.match(schema, /lastLynchVictim/);
   assert.match(schema, /export const nightActions/);
   assert.match(schema, /export const dayVotes/);
+  assert.match(schema, /"chameleon_tie_break"/);
+  assert.match(schema, /export const gameSecrets/);
+  assert.match(schema, /export const gamePhaseAcknowledgements/);
 });
 
 test("Mafia UI supports the live room cap and lynch result phase", () => {
@@ -44,7 +74,9 @@ test("Mafia UI supports the live room cap and lynch result phase", () => {
   const game = read("src/components/game/mafia/MafiaGame.tsx");
 
   assert.match(lobby, /const maxPlayers = isMafia \? 25 : 8/);
+  assert.match(lobby, /const minPlayers = isMafia \? 5 : 3/);
   assert.match(home, /g\.player_count}\/{isMafia \? 25 : 8}/);
+  assert.match(home, /3–8 players/);
   assert.match(settings, /Array\.from\(\{ length: 8 \}/);
   assert.match(game, /game\.status === "lynch_result"/);
   assert.match(game, /LynchResultScreen/);

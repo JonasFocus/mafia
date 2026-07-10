@@ -1,205 +1,42 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { Game, MafiaPlayerView, NightAction, DayVote, PlayerRole } from "@/lib/game/types";
+import { useGameSnapshot } from "@/hooks/use-game-snapshot";
+import { usePhaseRecovery } from "@/hooks/use-phase-recovery";
+import type { MafiaPlayerView, PlayerRole } from "@/lib/game/types";
 
-export function useMafiaGame(roomCode: string) {
-  const [supabase] = useState(() => createClient());
-  const [userId, setUserId] = useState<string | null>(null);
-  const [game, setGame] = useState<Game | null>(null);
-  const [players, setPlayers] = useState<MafiaPlayerView[]>([]);
-  const [nightActions, setNightActions] = useState<NightAction[]>([]);
-  const [dayVotes, setDayVotes] = useState<DayVote[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const gameIdRef = useRef<string | null>(null);
-  const roundRef = useRef<number>(1);
-
-  const refetchPlayers = useCallback(
-    async (gameId: string) => {
-      const [{ data: playerRows }, { data: { user } }] = await Promise.all([
-        supabase.from("game_players_public").select("*").eq("game_id", gameId).order("join_order"),
-        supabase.auth.getUser(),
-      ]);
-      if (!playerRows) return;
-      const rows = playerRows.filter((p): p is typeof p & { user_id: string } => p.user_id !== null);
-      const ids = rows.map((p) => p.user_id);
-      const { data: userRows } = await supabase.from("users").select("id, display_name").in("id", ids);
-      const nameById = new Map(userRows?.map((u) => [u.id, u.display_name]) ?? []);
-      setPlayers(
-        rows.map((p) => ({
-          userId: p.user_id,
-          displayName: nameById.get(p.user_id) ?? "Player",
-          isEliminated: !!p.is_eliminated,
-          role: p.role,
-          joinOrder: p.join_order ?? 0,
-        })),
-      );
-      if (user) setUserId(user.id);
-    },
-    [supabase],
+export function useMafiaGame(roomCode: string, userId: string) {
+  const state = useGameSnapshot(roomCode);
+  const snapshot = state.snapshot;
+  const recoveryAvailable = usePhaseRecovery(
+    snapshot?.phase_deadline,
+    snapshot?.recovery_available ?? false,
   );
+  const players: MafiaPlayerView[] =
+    snapshot?.players.map((player) => ({
+      userId: player.user_id,
+      displayName: player.display_name,
+      isEliminated: player.is_eliminated,
+      role: player.role,
+      joinOrder: player.join_order,
+      lastSeenAt: player.last_seen_at,
+    })) ?? [];
 
-  const refetchNightActions = useCallback(
-    async (gameId: string, round: number) => {
-      const { data } = await supabase
-        .from("night_actions")
-        .select("*")
-        .eq("game_id", gameId)
-        .eq("round_number", round);
-      setNightActions(data ?? []);
-    },
-    [supabase],
-  );
-
-  const refetchDayVotes = useCallback(
-    async (gameId: string, round: number) => {
-      const { data } = await supabase
-        .from("day_votes")
-        .select("*")
-        .eq("game_id", gameId)
-        .eq("round_number", round);
-      setDayVotes(data ?? []);
-    },
-    [supabase],
-  );
-
-  const refetchGame = useCallback(
-    async (gameId: string) => {
-      const { data: g, error: gErr } = await supabase.from("games").select("*").eq("id", gameId).maybeSingle();
-      if (gErr) {
-        setError(gErr.message);
-        return;
-      }
-      if (!g) {
-        // The game row was deleted out from under us (host ended the game).
-        if (gameIdRef.current) {
-          setGame(null);
-          setError("This game has ended");
-        }
-        return;
-      }
-      setGame(g);
-      roundRef.current = g.current_round;
-      await Promise.all([
-        refetchPlayers(gameId),
-        refetchNightActions(gameId, g.current_round),
-        refetchDayVotes(gameId, g.current_round),
-      ]);
-    },
-    [supabase, refetchPlayers, refetchNightActions, refetchDayVotes],
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function init() {
-      setLoading(true);
-      const { data: g, error: gErr } = await supabase
-        .from("games")
-        .select("*")
-        .eq("room_code", roomCode.toUpperCase())
-        .maybeSingle();
-      if (cancelled) return;
-      if (gErr) {
-        setError("Couldn’t load the game. Check your connection and try again.");
-        setLoading(false);
-        return;
-      }
-      if (!g) {
-        setError("Room not found");
-        setLoading(false);
-        return;
-      }
-      gameIdRef.current = g.id;
-      await refetchGame(g.id);
-      setLoading(false);
-    }
-    init();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [roomCode, supabase, refetchGame]);
-
-  useEffect(() => {
-    if (!game?.id) return;
-    const gameId = game.id;
-
-    const channel = supabase
-      .channel(`mafia:${gameId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "games", filter: `id=eq.${gameId}` }, () =>
-        refetchGame(gameId),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "game_players", filter: `game_id=eq.${gameId}` },
-        () => refetchPlayers(gameId),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "night_actions", filter: `game_id=eq.${gameId}` },
-        () => refetchNightActions(gameId, roundRef.current),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "day_votes", filter: `game_id=eq.${gameId}` },
-        () => refetchDayVotes(gameId, roundRef.current),
-      )
-      .subscribe((status) => {
-        // On (re)connect, catch up on anything missed while the socket was down.
-        if (status === "SUBSCRIBED") refetchGame(gameId);
-      });
-
-    const onVisible = () => {
-      if (document.visibilityState === "visible") refetchGame(gameId);
-    };
-    document.addEventListener("visibilitychange", onVisible);
-
-    return () => {
-      document.removeEventListener("visibilitychange", onVisible);
-      supabase.removeChannel(channel);
-    };
-  }, [game?.id, supabase, refetchGame, refetchPlayers, refetchNightActions, refetchDayVotes]);
-
-  // Lobby membership can't stream over realtime (game_players RLS is own-row-only),
-  // so poll the security-definer player list while in the lobby to keep the roster
-  // and Start button current as people join.
-  useEffect(() => {
-    if (game?.status !== "lobby" || !game?.id) return;
-    const gameId = game.id;
-    const interval = setInterval(() => refetchPlayers(gameId), 2500);
-    return () => clearInterval(interval);
-  }, [game?.status, game?.id, refetchPlayers]);
-
-  // Post-submit catch-up: realtime normally echoes our own insert back, but a
-  // dropped event would leave the UI on the action form (or "Casting vote…")
-  // until the next visibility change. Callers refetch right after a successful
-  // submit so `acted`/`myDayVoteCast` never depend on the socket.
-  const refetchCurrent = useCallback(async () => {
-    if (gameIdRef.current) await refetchGame(gameIdRef.current);
-  }, [refetchGame]);
-
-  const me = players.find((p) => p.userId === userId);
+  const me = players.find((player) => player.userId === userId);
   const myRole: PlayerRole | null = me?.role ?? null;
   const fellowMafia =
     myRole === "mafia"
-      ? players.filter((p) => p.role === "mafia" && p.userId !== userId)
+      ? players.filter((player) => player.role === "mafia" && player.userId !== userId)
       : [];
-
-  const myNightAction =
-    nightActions.find((a) => a.actor_id === userId) ?? null;
-  const inspectRow = nightActions.find((a) => a.actor_id === userId && a.action_type === "inspect");
+  const nightActions = snapshot?.night_actions ?? [];
+  const myNightAction = nightActions.find((action) => action.actor_id === userId) ?? null;
   const myInspectResult: "mafia" | "not_mafia" | null =
-    inspectRow?.result === "mafia" || inspectRow?.result === "not_mafia" ? inspectRow.result : null;
-
-  const myDayVoteCast = dayVotes.some((v) => v.voter_id === userId);
+    myNightAction?.result === "mafia" || myNightAction?.result === "not_mafia"
+      ? myNightAction.result
+      : null;
 
   return {
     userId,
-    game,
+    game: snapshot?.game ?? null,
     players,
     me,
     myRole,
@@ -207,9 +44,15 @@ export function useMafiaGame(roomCode: string) {
     nightActions,
     myNightAction,
     myInspectResult,
-    myDayVoteCast,
-    refetchCurrent,
-    loading,
-    error,
+    myDayVoteCast: snapshot?.my_day_vote_target_id != null,
+    myDayVoteTargetId: snapshot?.my_day_vote_target_id ?? null,
+    readyPlayerIds: snapshot?.ready_player_ids ?? [],
+    canAdvance: snapshot?.can_advance ?? false,
+    recoveryAvailable,
+    refetchCurrent: state.refetchCurrent,
+    loading: state.loading,
+    error: state.error,
+    connectionState: state.connectionState,
+    retryConnection: state.retryConnection,
   };
 }

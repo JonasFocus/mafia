@@ -2,17 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import type { GuessWordOption } from "./ChameleonGuessScreen";
 
 export function RoleCard({
-  isOutsider,
+  isChameleon,
   word,
+  wordOptions,
   category,
-  showCategory,
 }: {
-  isOutsider: boolean;
+  isChameleon: boolean;
   word: string | null;
+  wordOptions: GuessWordOption[];
   category: string;
-  showCategory: boolean;
 }) {
   const [flipped, setFlipped] = useState(false);
   const [locked, setLocked] = useState(false);
@@ -33,7 +34,7 @@ export function RoleCard({
     );
   }
 
-  const glow = isOutsider ? "var(--outsider-glow)" : "var(--civilian-glow)";
+  const glow = isChameleon ? "var(--outsider-glow)" : "var(--civilian-glow)";
 
   return (
     <div className="relative w-full max-w-xs mx-auto">
@@ -48,7 +49,7 @@ export function RoleCard({
       <button
         type="button"
         onClick={handleTap}
-        aria-label={isOutsider ? "Reveal your role" : "Reveal your secret word"}
+        aria-label={isChameleon ? "Reveal your Chameleon role" : "Reveal your secret word"}
         className="relative block w-full aspect-[3/4] select-none cursor-pointer appearance-none rounded-[24px] outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
         style={{ perspective: 1400 }}
       >
@@ -107,16 +108,14 @@ export function RoleCard({
                   transition={{ delay: 0.18, type: "spring", stiffness: 380, damping: 22 }}
                   className="flex flex-col items-center gap-3"
                 >
-                  {isOutsider ? (
+                  {isChameleon ? (
                     <>
-                      {showCategory && (
-                        <span
-                          className="rounded-full px-3 py-0.5 text-[11px] tracking-wide uppercase text-foreground-muted"
-                          style={{ background: "var(--surface)", boxShadow: "var(--elevation-1)" }}
-                        >
-                          {category}
-                        </span>
-                      )}
+                      <span
+                        className="rounded-full px-3 py-0.5 text-[11px] tracking-wide uppercase text-foreground-muted"
+                        style={{ background: "var(--surface)", boxShadow: "var(--elevation-1)" }}
+                      >
+                        {category}
+                      </span>
                       <span className="mt-1 text-xs tracking-widest uppercase text-foreground-muted">
                         You are the
                       </span>
@@ -124,25 +123,20 @@ export function RoleCard({
                         className="font-display text-4xl font-bold"
                         style={{ color: glow, textShadow: `0 0 24px ${glow}66` }}
                       >
-                        Mafia
+                        Chameleon
                       </span>
                       <span className="text-sm text-foreground-muted mt-1 max-w-[200px]">
-                        You don&apos;t know the word. Bluff like you do.
+                        Every word is possible. Listen closely and blend in.
                       </span>
+                      <CandidateWordGrid options={wordOptions} selectedWord={null} />
                     </>
                   ) : (
                     <>
                       <span className="text-xs tracking-widest uppercase text-foreground-muted">{category}</span>
-                      <span
-                        className="font-display font-bold leading-tight break-words max-w-full"
-                        style={{
-                          color: glow,
-                          textShadow: `0 0 24px ${glow}66`,
-                          fontSize: "clamp(1.5rem, 8vw, 2.25rem)",
-                        }}
-                      >
-                        {word}
+                      <span className="font-display text-2xl font-bold" style={{ color: glow }}>
+                        Your secret word
                       </span>
+                      <CandidateWordGrid options={wordOptions} selectedWord={word} />
                     </>
                   )}
                 </motion.div>
@@ -151,6 +145,31 @@ export function RoleCard({
           </div>
         </motion.div>
       </button>
+    </div>
+  );
+}
+
+function CandidateWordGrid({ options, selectedWord }: { options: GuessWordOption[]; selectedWord: string | null }) {
+  const visibleOptions = options.length > 0 ? options : selectedWord ? [{ id: "selected", text: selectedWord }] : [];
+  return (
+    <div className="mt-2 grid w-full grid-cols-2 gap-2" aria-label="Category word card">
+      {visibleOptions.map((option) => {
+        const selected = selectedWord != null && option.text === selectedWord;
+        return (
+          <span
+            key={option.id}
+            className="flex min-h-9 items-center justify-center rounded-[10px] border px-2 py-1.5 text-xs font-semibold"
+            style={{
+              color: selected ? "var(--background-deep)" : "var(--foreground)",
+              borderColor: selected ? "var(--civilian-glow)" : "var(--surface-border)",
+              background: selected ? "var(--civilian-glow)" : "var(--surface)",
+              boxShadow: selected ? "0 0 18px color-mix(in srgb, var(--civilian-glow) 28%, transparent)" : undefined,
+            }}
+          >
+            {option.text}
+          </span>
+        );
+      })}
     </div>
   );
 }

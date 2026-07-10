@@ -7,6 +7,7 @@ export function toPlayerView(p: MafiaPlayerView): PlayerView {
     isEliminated: p.isEliminated,
     isOutsider: null,
     joinOrder: p.joinOrder,
+    lastSeenAt: p.lastSeenAt,
   };
 }
 

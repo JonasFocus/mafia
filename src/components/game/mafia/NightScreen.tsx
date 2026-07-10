@@ -54,6 +54,7 @@ export function NightScreen({
 
   const acted = myNightAction != null;
   const hasNightRole = myRole !== "faithful";
+  const choiceCanChange = myRole === "mafia" || myRole === "angel";
 
   const nameById = useMemo(
     () => new Map(players.map((p) => [p.userId, p.displayName])),
@@ -74,7 +75,7 @@ export function NightScreen({
     return living;
   }, [players, myRole, fellowMafia, userId]);
 
-  if (!hasNightRole || acted) {
+  if (!hasNightRole || (acted && !choiceCanChange)) {
     return (
       <WaitingState
         myRole={myRole}
@@ -87,6 +88,10 @@ export function NightScreen({
   }
 
   const config = ROLE_ACTION[myRole as Exclude<PlayerRole, "faithful">];
+  const currentTargetId = myNightAction?.target_id ?? null;
+  const effectiveSelection = selected ?? currentTargetId;
+  const choiceChanged = !!effectiveSelection && effectiveSelection !== currentTargetId;
+  const currentTargetName = currentTargetId ? nameById.get(currentTargetId) ?? "Unknown player" : null;
 
   // Fellow-mafia kill picks this round (for coordination hints).
   const teammatePicks =
@@ -107,11 +112,12 @@ export function NightScreen({
       : null;
 
   async function handleSubmit() {
-    if (!selected) return;
+    if (!effectiveSelection || !choiceChanged) return;
     setSubmitting(true);
     setError(null);
     try {
-      await onSubmit(config.type, selected);
+      await onSubmit(config.type, effectiveSelection);
+      setSelected(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not submit. Try again.");
     } finally {
@@ -136,7 +142,7 @@ export function NightScreen({
 
         <PlayerGrid
           players={targets.map(toPlayerView)}
-          selectedUserId={selected}
+          selectedUserId={effectiveSelection}
           onSelect={(id) => setSelected(id)}
           hintedIds={myRole === "mafia" ? teammatePicks : undefined}
           meId={userId}
@@ -155,14 +161,20 @@ export function NightScreen({
           </p>
         )}
 
+        {acted && currentTargetName && (
+          <p className="text-center text-sm text-foreground-muted" role="status" aria-live="polite">
+            Current choice: <span className="font-semibold text-foreground">{currentTargetName}</span>. Select another player to change it.
+          </p>
+        )}
+
         {error && <p className="text-sm text-outsider-glow text-center">{error}</p>}
 
         <Button
           onClick={handleSubmit}
-          disabled={!selected || submitting}
+          disabled={!choiceChanged || submitting}
           className="w-full mt-auto"
         >
-          {submitting ? "Sending..." : config.cta}
+          {submitting ? "Saving..." : acted ? "Change target" : config.cta}
         </Button>
       </div>
     </NightShell>

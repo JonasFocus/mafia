@@ -8,9 +8,8 @@ import { PlayerGrid } from "./PlayerGrid";
 import { MafiaSettings } from "./mafia/MafiaSettings";
 import { Button } from "@/components/ui/Button";
 import { BottomSheet } from "@/components/ui/BottomSheet";
-import { Stepper } from "@/components/ui/Stepper";
-import { Toggle } from "@/components/ui/Toggle";
-import { startGame, startMafiaGame, updateGameSettings, deleteGame, leaveGame } from "@/lib/game/actions";
+import { useHostRecovery } from "@/hooks/use-host-recovery";
+import { claimRoomHost, startGame, startMafiaGame, closeGame, leaveGame } from "@/lib/game/actions";
 import type { Game, GameMode, PlayerView } from "@/lib/game/types";
 
 export function LobbyScreen({
@@ -35,9 +34,9 @@ export function LobbyScreen({
   const [copied, setCopied] = useState(false);
   const [shared, setShared] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [mafiaCountOverride, setMafiaCountOverride] = useState<number | null>(null);
-  const [showCategoriesOverride, setShowCategoriesOverride] = useState<boolean | null>(null);
-  const [settingsError, setSettingsError] = useState<string | null>(null);
+  const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
+  const [closing, setClosing] = useState(false);
+  const [claimingHost, setClaimingHost] = useState(false);
   const [inviteUrl, setInviteUrl] = useState("");
 
   useEffect(() => {
@@ -45,12 +44,10 @@ export function LobbyScreen({
     setInviteUrl(`${window.location.origin}/join?code=${game.room_code}`);
   }, [game.room_code]);
 
-  const minPlayers = isMafia ? 5 : 4;
+  const minPlayers = isMafia ? 5 : 3;
   const maxPlayers = isMafia ? 25 : 8;
   const canStart = players.length >= minPlayers && players.length <= maxPlayers;
-  const maxMafia = Math.max(1, Math.floor((players.length - 1) / 2));
-  const mafiaCount = mafiaCountOverride ?? game.mafia_count;
-  const showCategories = showCategoriesOverride ?? game.show_categories;
+  const canRecoverHost = useHostRecovery(players, game.dealer_id ?? game.host_id, isHost);
 
   async function handleStart() {
     setStarting(true);
@@ -68,19 +65,42 @@ export function LobbyScreen({
   }
 
   async function handleLeave() {
+    if (isHost) {
+      setCloseConfirmOpen(true);
+      return;
+    }
     setError(null);
     try {
-      if (isHost) await deleteGame(game.id);
-      else await leaveGame(game.id);
+      await leaveGame(game.id);
       router.push("/");
     } catch (err) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : isHost
-            ? "Could not end the game"
-            : "Could not leave the game",
-      );
+      setError(err instanceof Error ? err.message : "Could not leave the game");
+    }
+  }
+
+  async function handleCloseGame() {
+    if (closing) return;
+    setClosing(true);
+    setError(null);
+    try {
+      await closeGame(game.id);
+      router.push("/");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not close the room");
+      setClosing(false);
+      setCloseConfirmOpen(false);
+    }
+  }
+
+  async function handleClaimHost() {
+    if (claimingHost) return;
+    setClaimingHost(true);
+    setError(null);
+    try {
+      await claimRoomHost(game.id);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not recover the room controls");
+      setClaimingHost(false);
     }
   }
 
@@ -105,28 +125,6 @@ export function LobbyScreen({
       setShared(true);
       setTimeout(() => setShared(false), 1500);
     });
-  }
-
-  async function handleMafiaCountChange(value: number) {
-    setMafiaCountOverride(value);
-    setSettingsError(null);
-    try {
-      await updateGameSettings(game.id, { mafiaCount: value });
-    } catch (err) {
-      setMafiaCountOverride(null);
-      setSettingsError(err instanceof Error ? err.message : "Could not update settings");
-    }
-  }
-
-  async function handleShowCategoriesChange(value: boolean) {
-    setShowCategoriesOverride(value);
-    setSettingsError(null);
-    try {
-      await updateGameSettings(game.id, { showCategories: value });
-    } catch (err) {
-      setShowCategoriesOverride(null);
-      setSettingsError(err instanceof Error ? err.message : "Could not update settings");
-    }
   }
 
   return (
@@ -241,7 +239,14 @@ export function LobbyScreen({
                     : `Too many players (max ${maxPlayers})`}
             </Button>
           ) : (
-            <p className="text-center text-sm text-foreground-muted">Waiting for the host to start.</p>
+            <>
+              <p className="text-center text-sm text-foreground-muted">Waiting for the host to start.</p>
+              {canRecoverHost && (
+                <Button variant="secondary" onClick={handleClaimHost} disabled={claimingHost} className="w-full">
+                  {claimingHost ? "Recovering room controls..." : "Recover room controls"}
+                </Button>
+              )}
+            </>
           )}
 
           <button
@@ -249,13 +254,13 @@ export function LobbyScreen({
             onClick={handleLeave}
             className="rounded-[12px] px-3 py-2 text-sm font-medium text-foreground-muted outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-accent"
           >
-            {isHost ? "End game" : "Leave game"}
+            {isHost ? "Close room" : "Leave game"}
           </button>
         </div>
       </div>
 
       {isHost && (
-        <BottomSheet open={settingsOpen} onClose={() => setSettingsOpen(false)}>
+        <BottomSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} ariaLabel="Game settings">
           <div className="flex flex-col gap-6">
             <h2 className="font-display text-3xl font-semibold leading-none">Game settings</h2>
 
@@ -263,32 +268,21 @@ export function LobbyScreen({
               <MafiaSettings game={game} playerCount={players.length} />
             ) : (
               <>
-                <div className="flex flex-col gap-2">
-                  <span className="text-[15px] font-medium text-foreground">Mafia count</span>
-                  <Stepper
-                    value={mafiaCount}
-                    onChange={handleMafiaCountChange}
-                    min={1}
-                    max={maxMafia}
-                    options={[1, 2, 3]}
-                    disabledCaption={(o) => `Need ${o * 2 + 1}+ players`}
-                  />
+                <div className="flex items-center justify-between gap-4 rounded-[16px] border border-surface-border bg-surface px-4 py-3">
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-[15px] font-medium text-foreground">One Chameleon</span>
+                    <span className="text-xs text-foreground-muted">Every game has exactly one hidden Chameleon.</span>
+                  </div>
+                  <span className="role-mark h-9 w-9 shrink-0 text-outsider-glow" aria-hidden="true" />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <Toggle
-                    checked={showCategories}
-                    onChange={handleShowCategoriesChange}
-                    label="Show categories to Mafia"
-                  />
-                  <span className="text-xs text-foreground-muted">
-                    Mafia will see the category, just not the word.
+                <div className="rounded-[16px] border border-surface-border bg-surface px-4 py-3">
+                  <span className="text-sm leading-6 text-foreground-muted">
+                    Everyone sees the full category card. Only the players see which word is selected.
                   </span>
                 </div>
               </>
             )}
-
-            {settingsError && <p className="text-sm text-outsider-glow">{settingsError}</p>}
 
             <Button onClick={() => setSettingsOpen(false)} className="w-full">
               Done
@@ -296,6 +290,25 @@ export function LobbyScreen({
           </div>
         </BottomSheet>
       )}
+
+      <BottomSheet open={closeConfirmOpen} onClose={() => !closing && setCloseConfirmOpen(false)} ariaLabel="Close room confirmation">
+        <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-2">
+            <h2 className="font-display text-3xl font-semibold">Close this room?</h2>
+            <p className="text-sm leading-6 text-foreground-muted">
+              Everyone will be removed from the lobby and this room code will stop working.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button onClick={handleCloseGame} disabled={closing} className="w-full">
+              {closing ? "Closing room..." : "Yes, close room"}
+            </Button>
+            <Button variant="ghost" onClick={() => setCloseConfirmOpen(false)} disabled={closing} className="w-full">
+              Keep room open
+            </Button>
+          </div>
+        </div>
+      </BottomSheet>
     </div>
   );
 }

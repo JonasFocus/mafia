@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { PlayerGrid } from "@/components/game/PlayerGrid";
-import { Button } from "@/components/ui/Button";
+import { PhaseProgressControls } from "@/components/game/PhaseProgressControls";
 import { toPlayerView, phaseSpring as spring } from "./shared";
 import type { Game, MafiaPlayerView } from "@/lib/game/types";
 
@@ -14,17 +14,21 @@ export function LynchResultScreen({
   game,
   players,
   userId,
-  isHost,
+  readyPlayerIds,
+  canAdvance,
+  recoveryAvailable,
+  onReady,
   onBeginNight,
 }: {
   game: Game;
   players: MafiaPlayerView[];
   userId: string;
-  isHost: boolean;
+  readyPlayerIds: string[];
+  canAdvance: boolean;
+  recoveryAvailable: boolean;
+  onReady: () => Promise<void>;
   onBeginNight: () => Promise<void>;
 }) {
-  const submittingRef = useRef(false);
-
   const victim = useMemo(
     () => players.find((p) => p.userId === game.last_lynch_victim) ?? null,
     [players, game.last_lynch_victim],
@@ -34,16 +38,6 @@ export function LynchResultScreen({
     [players],
   );
   const victimIsMe = victim?.userId === userId;
-
-  async function handleBeginNight() {
-    if (submittingRef.current) return;
-    submittingRef.current = true;
-    try {
-      await onBeginNight();
-    } finally {
-      submittingRef.current = false;
-    }
-  }
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
@@ -108,13 +102,18 @@ export function LynchResultScreen({
         </motion.div>
 
         <div className="mt-auto w-full">
-          {isHost ? (
-            <Button onClick={handleBeginNight} className="w-full">
-              Begin the night
-            </Button>
-          ) : (
-            <p className="text-center text-sm text-foreground-muted">Waiting for the host...</p>
-          )}
+          <PhaseProgressControls
+            players={players.map(toPlayerView)}
+            readyPlayerIds={readyPlayerIds}
+            userId={userId}
+            readyLabel="I saw the vote result"
+            readyMessage="Ready for the next night."
+            advanceLabel="Begin the night"
+            canAdvance={canAdvance}
+            recoveryAvailable={recoveryAvailable}
+            onReady={onReady}
+            onAdvance={onBeginNight}
+          />
         </div>
       </div>
     </div>

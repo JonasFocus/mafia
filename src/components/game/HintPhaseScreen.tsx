@@ -8,25 +8,26 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { giveHint } from "@/lib/game/actions";
 import type { PlayerView, Round } from "@/lib/game/types";
+import type { GuessWordOption } from "./ChameleonGuessScreen";
 
 export function HintPhaseScreen({
   userId,
   players,
   round,
   hintedIds,
-  isOutsider,
+  isChameleon,
   word,
+  wordOptions,
   category,
-  showCategories,
 }: {
   userId: string;
   players: PlayerView[];
   round: Round;
   hintedIds: string[];
-  isOutsider: boolean;
+  isChameleon: boolean;
   word: string | null;
+  wordOptions: GuessWordOption[];
   category: string;
-  showCategories: boolean;
 }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export function HintPhaseScreen({
     .map((id) => players.find((p) => p.userId === id))
     .filter((p): p is PlayerView => !!p);
   const currentTurn = turnOrder.find((p) => !hintedIds.includes(p.userId));
+  const isMyTurn = currentTurn?.userId === userId;
 
   async function handleGiveHint() {
     if (submittingRef.current) return;
@@ -44,7 +46,7 @@ export function HintPhaseScreen({
     setSubmitting(true);
     setError(null);
     try {
-      await giveHint(round.id, userId);
+      await giveHint(round.game_id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not mark your hint");
     } finally {
@@ -58,13 +60,13 @@ export function HintPhaseScreen({
       <span className="shrink-0 text-xs tracking-widest uppercase text-foreground-muted">Round {round.round_number}</span>
 
       <div className="w-full shrink-0">
-        <RoleCard isOutsider={isOutsider} word={word} category={category} showCategory={showCategories} />
+        <RoleCard isChameleon={isChameleon} word={word} wordOptions={wordOptions} category={category} />
       </div>
 
       <TurnOrderRail turnOrder={turnOrder} hintedIds={hintedIds} currentUserId={currentTurn?.userId} />
 
       <p className="text-sm text-foreground-muted text-center">
-        Give your hint out loud, then mark yourself done.
+        Give one clue out loud without saying the secret word, then pass the phone-sized turn marker on.
         {currentTurn && (
           <>
             {" "}
@@ -77,8 +79,14 @@ export function HintPhaseScreen({
 
       {error && <p className="text-sm text-outsider-glow text-center">{error}</p>}
 
-      <Button onClick={handleGiveHint} disabled={alreadyHinted || submitting} className="w-full mt-auto">
-        {alreadyHinted ? "Hint given - waiting on others" : submitting ? "Marking..." : "I've given my hint"}
+      <Button onClick={handleGiveHint} disabled={alreadyHinted || submitting || !isMyTurn} className="w-full mt-auto">
+        {alreadyHinted
+          ? "Clue given - listening to the table"
+          : submitting
+            ? "Marking clue..."
+            : isMyTurn
+              ? "I gave my clue"
+              : `Waiting for ${currentTurn?.displayName ?? "the next player"}`}
       </Button>
     </div>
   );

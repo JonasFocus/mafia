@@ -13,7 +13,7 @@ begin
   select * into g from test.new_game('mafia', p_n, p_mafia, p_sheriff, p_angel);
   host := g.uids[1];
   perform test.act(host); perform public.start_mafia_game(g.game_id);
-  perform test.act(host); perform public.begin_night(g.game_id);
+  perform test.act(host); perform test.begin_night(g.game_id);
 
   while test.status(g.game_id) <> 'game_over' loop
     iter := iter + 1;
@@ -38,7 +38,7 @@ begin
     exit when test.status(g.game_id) = 'game_over';
 
     -- DAY: unanimous vote by strategy.
-    perform test.act(host); perform public.begin_day_vote(g.game_id);
+    perform test.act(host); perform test.begin_day_vote(g.game_id);
     day_target := case when p_strategy = 'lynch_mafia'
                        then (test.living(g.game_id, 'mafia'))[1]
                        else (test.living_not(g.game_id, 'mafia'))[1] end;
@@ -54,7 +54,7 @@ begin
     exit when test.status(g.game_id) = 'game_over';
 
     -- NEXT NIGHT: round bumps exactly once.
-    perform test.act(host); perform public.begin_night(g.game_id);
+    perform test.act(host); perform test.begin_night(g.game_id);
     perform test.ok(test.status(g.game_id) = 'night', 'host advances to the next night');
     perform test.ok(test.round(g.game_id) = round_before + 1, 'round bumps exactly once per cycle');
   end loop;
@@ -87,7 +87,8 @@ declare v_err boolean := false;
 begin
   begin
     perform test.simulate(25, 12, false, false, 'lynch_town', 'mafia');
-  exception when check_violation then v_err := true;
+  exception when others then
+    v_err := sqlerrm like '%INVALID_MAFIA_COUNT%';
   end;
   perform test.ok(v_err, '12-mafia config refused by the 1..8 constraint');
   raise notice 't08a2 mafia cap constraint OK';

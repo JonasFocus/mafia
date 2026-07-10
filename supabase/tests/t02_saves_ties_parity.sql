@@ -11,7 +11,7 @@ begin
   sheriff := (test.living(g.game_id, 'sheriff'))[1];
   angel := (test.living(g.game_id, 'angel'))[1];
   faithful := test.living(g.game_id, 'faithful');
-  perform test.act(host); perform public.begin_night(g.game_id);
+  perform test.act(host); perform test.begin_night(g.game_id);
 
   -- Night 1: angel protects exactly the kill target -> nobody dies.
   perform test.kill(g.game_id, mafia, faithful[1]);
@@ -23,7 +23,7 @@ begin
   perform test.ok((select count(*) from game_players where game_id = g.game_id and is_eliminated) = 0, 'nobody eliminated');
 
   -- Day 1: 6 alive, 3v3 tie -> no lynch.
-  perform test.act(host); perform public.begin_day_vote(g.game_id);
+  perform test.act(host); perform test.begin_day_vote(g.game_id);
   perform test.vote(g.game_id, mafia, faithful[1]);
   perform test.vote(g.game_id, faithful[2], faithful[1]);
   perform test.vote(g.game_id, faithful[3], faithful[1]);
@@ -35,7 +35,7 @@ begin
   perform test.ok((select count(*) from game_players where game_id = g.game_id and is_eliminated) = 0, 'tie eliminates nobody');
 
   -- Vote-change before resolution: re-cast overwrites (exercised implicitly by upsert path in t06 too).
-  perform test.act(host); perform public.begin_night(g.game_id);
+  perform test.act(host); perform test.begin_night(g.game_id);
   perform test.ok(test.round(g.game_id) = 2, 'round 2 after tie day');
 
   raise notice 't02a saves+ties OK';
@@ -51,7 +51,7 @@ begin
   perform test.ok(array_length(test.living(g.game_id, 'faithful'), 1) = 3, 'no sheriff/angel dealt when disabled');
   mafia := test.living(g.game_id, 'mafia');
   town := test.living_not(g.game_id, 'mafia');
-  perform test.act(host); perform public.begin_night(g.game_id);
+  perform test.act(host); perform test.begin_night(g.game_id);
 
   perform test.kill(g.game_id, mafia[1], town[1]);
   perform test.ok(test.status(g.game_id) = 'night', 'waits for second mafia');
@@ -72,7 +72,7 @@ begin
   perform test.act(host); perform public.start_mafia_game(g.game_id);
   mafia := test.living(g.game_id, 'mafia');
   town := test.living_not(g.game_id, 'mafia');
-  perform test.act(host); perform public.begin_night(g.game_id);
+  perform test.act(host); perform test.begin_night(g.game_id);
   perform test.kill(g.game_id, mafia[1], town[1]);
   perform test.kill(g.game_id, mafia[2], town[2]);
   perform test.kill(g.game_id, mafia[3], town[1]);

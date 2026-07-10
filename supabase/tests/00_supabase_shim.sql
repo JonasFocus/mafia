@@ -4,7 +4,9 @@
 create schema if not exists auth;
 
 create table auth.users (
-  id uuid primary key default gen_random_uuid()
+  id uuid primary key default gen_random_uuid(),
+  is_anonymous boolean not null default true,
+  created_at timestamptz not null default clock_timestamp()
 );
 
 create or replace function auth.uid()

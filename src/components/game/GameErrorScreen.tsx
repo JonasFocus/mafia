@@ -5,7 +5,7 @@ import Link from "next/link";
 /** Shared error screen for the game route: retry for recoverable errors, always
  * a way back home. Retry is hidden for a missing or ended game. */
 export function GameErrorScreen({ error }: { error: string }) {
-  const canRetry = error !== "Room not found" && error !== "This game has ended";
+  const canRetry = !/room not found|no longer exists|room has expired|not a player/i.test(error);
   return (
     <main className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center safe-top safe-bottom">
       <p className="text-foreground-muted">{error}</p>
