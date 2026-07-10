@@ -1,25 +1,31 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { PlayerGrid } from "@/components/game/PlayerGrid";
-import { Button } from "@/components/ui/Button";
+import { PhaseProgressControls } from "@/components/game/PhaseProgressControls";
 import { toPlayerView, phaseSpring as spring } from "./shared";
 import type { Game, MafiaPlayerView } from "@/lib/game/types";
 
 export function DayResultScreen({
   game,
   players,
-  isHost,
+  userId,
+  readyPlayerIds,
+  canAdvance,
+  recoveryAvailable,
+  onReady,
   onBeginVote,
 }: {
   game: Game;
   players: MafiaPlayerView[];
-  isHost: boolean;
+  userId: string;
+  readyPlayerIds: string[];
+  canAdvance: boolean;
+  recoveryAvailable: boolean;
+  onReady: () => Promise<void>;
   onBeginVote: () => Promise<void>;
 }) {
-  const submittingRef = useRef(false);
-
   const eliminated = useMemo(
     () => players.filter((p) => p.isEliminated),
     [players],
@@ -37,16 +43,6 @@ export function DayResultScreen({
   );
 
   const noOneDied = victims.length === 0;
-
-  async function handleBeginVote() {
-    if (submittingRef.current) return;
-    submittingRef.current = true;
-    try {
-      await onBeginVote();
-    } finally {
-      submittingRef.current = false;
-    }
-  }
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
@@ -107,13 +103,18 @@ export function DayResultScreen({
         </motion.div>
 
         <div className="mt-auto w-full">
-          {isHost ? (
-            <Button onClick={handleBeginVote} className="w-full">
-              Start the vote
-            </Button>
-          ) : (
-            <p className="text-center text-sm text-foreground-muted">Waiting for the host...</p>
-          )}
+          <PhaseProgressControls
+            players={players.map(toPlayerView)}
+            readyPlayerIds={readyPlayerIds}
+            userId={userId}
+            readyLabel="I saw the morning result"
+            readyMessage="Ready to discuss and vote."
+            advanceLabel="Start the vote"
+            canAdvance={canAdvance}
+            recoveryAvailable={recoveryAvailable}
+            onReady={onReady}
+            onAdvance={onBeginVote}
+          />
         </div>
       </div>
     </div>

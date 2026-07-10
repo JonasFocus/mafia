@@ -1,21 +1,33 @@
-import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
 import { Confetti } from "./Confetti";
+import { GameEndControls } from "./GameEndControls";
 import type { PlayerView } from "@/lib/game/types";
 
 export function ResultsScreen({
   players,
   word,
   category,
+  winner,
+  guessCorrect,
+  isHost,
+  canRecoverHost,
+  onRematch,
+  onClose,
+  onRecoverHost,
 }: {
   players: PlayerView[];
   word: string | null;
   category: string;
+  winner: "players" | "chameleon";
+  guessCorrect: boolean | null;
+  isHost: boolean;
+  canRecoverHost: boolean;
+  onRematch: () => Promise<void>;
+  onClose: () => Promise<void>;
+  onRecoverHost: () => Promise<void>;
 }) {
-  const mafiaPlayers = players.filter((p) => p.isOutsider);
-  const mafiaSurvived = mafiaPlayers.some((p) => !p.isEliminated);
-  const winner = mafiaSurvived ? "outsider" : "civilians";
-  const glow = winner === "outsider" ? "var(--outsider-glow)" : "var(--civilian-glow)";
+  const chameleonWon = winner === "chameleon";
+  const glow = chameleonWon ? "var(--outsider-glow)" : "var(--civilian-glow)";
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden">
@@ -25,7 +37,7 @@ export function ResultsScreen({
           background: `radial-gradient(circle at 50% 0%, ${glow}45, transparent 60%)`,
         }}
       />
-      <Confetti variant={winner === "outsider" ? "mafia" : "civilian"} />
+      <Confetti variant={chameleonWon ? "mafia" : "civilian"} />
 
       <div className="relative flex flex-1 flex-col items-center overflow-y-auto px-6 py-10 safe-top safe-bottom gap-8 w-full max-w-sm mx-auto text-center">
         <div
@@ -36,13 +48,17 @@ export function ResultsScreen({
           }}
         >
           <span className="text-xs tracking-widest uppercase text-foreground-muted">
-            {winner === "outsider" ? "The Mafia survived" : "The Mafia was caught"}
+            {guessCorrect === true
+              ? "The Chameleon guessed the word"
+              : chameleonWon
+                ? "The Chameleon escaped the vote"
+                : "The Chameleon was caught"}
           </span>
           <span
             className="font-display text-5xl font-bold leading-none"
             style={{ color: glow, textShadow: `0 0 32px ${glow}70` }}
           >
-            {winner === "outsider" ? "Mafia Wins" : "Town Wins"}
+            {chameleonWon ? "Chameleon Wins" : "Players Win"}
           </span>
         </div>
 
@@ -72,19 +88,19 @@ export function ResultsScreen({
                   background: `${p.isOutsider ? "var(--outsider-glow)" : "var(--civilian-glow)"}1f`,
                 }}
               >
-                {p.isOutsider ? "Mafia" : "Town"}
+                {p.isOutsider ? "Chameleon" : "Player"}
               </span>
             </div>
           ))}
         </div>
 
-        <Link
-          href="/"
-          className="mt-2 flex h-14 w-full shrink-0 items-center justify-center rounded-full bg-surface-raised text-foreground font-display font-semibold text-base outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          style={{ boxShadow: "inset 0 -3px 0 rgba(0,0,0,0.4), 0 4px 0 rgba(0,0,0,0.4), 0 6px 14px rgba(0,0,0,0.4)" }}
-        >
-          Back to home
-        </Link>
+        <GameEndControls
+          isHost={isHost}
+          canRecoverHost={canRecoverHost}
+          onRematch={onRematch}
+          onClose={onClose}
+          onRecoverHost={onRecoverHost}
+        />
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/Button";
 import { MafiaRoleCard } from "@/components/game/mafia/MafiaRoleCard";
+import { PhaseProgressControls } from "@/components/game/PhaseProgressControls";
+import { toPlayerView } from "./shared";
 import type { Game, MafiaPlayerView, PlayerRole } from "@/lib/game/types";
 
 export function MafiaRoleReveal({
@@ -12,7 +12,11 @@ export function MafiaRoleReveal({
   me,
   myRole,
   fellowMafia,
-  isHost,
+  userId,
+  readyPlayerIds,
+  canAdvance,
+  recoveryAvailable,
+  onReady,
   onBeginNight,
 }: {
   game: Game;
@@ -20,23 +24,15 @@ export function MafiaRoleReveal({
   me: MafiaPlayerView;
   myRole: PlayerRole;
   fellowMafia: MafiaPlayerView[];
-  isHost: boolean;
+  userId: string;
+  readyPlayerIds: string[];
+  canAdvance: boolean;
+  recoveryAvailable: boolean;
+  onReady: () => Promise<void>;
   onBeginNight: () => Promise<void>;
 }) {
   void game;
   void me;
-  const [beginning, setBeginning] = useState(false);
-
-  async function handleBeginNight() {
-    if (beginning) return;
-    setBeginning(true);
-    try {
-      await onBeginNight();
-    } catch {
-      setBeginning(false);
-    }
-  }
-
   return (
     <div className="flex flex-1 flex-col items-center px-6 py-8 safe-top safe-bottom w-full max-w-sm mx-auto">
       <motion.div
@@ -62,19 +58,18 @@ export function MafiaRoleReveal({
         <p className="text-center text-xs text-foreground-muted">
           {players.length} players in this game.
         </p>
-        {isHost ? (
-          <Button className="w-full" onClick={handleBeginNight} disabled={beginning}>
-            {beginning ? "Starting..." : "Begin night"}
-          </Button>
-        ) : (
-          <motion.p
-            animate={{ opacity: [0.5, 1, 0.5] }}
-            transition={{ duration: 2.4, repeat: Infinity }}
-            className="text-center text-sm text-foreground-muted"
-          >
-            Waiting for the host to begin the night...
-          </motion.p>
-        )}
+        <PhaseProgressControls
+          players={players.map(toPlayerView)}
+          readyPlayerIds={readyPlayerIds}
+          userId={userId}
+          readyLabel="I saw my role"
+          readyMessage="Role saved. Keep the screen private."
+          advanceLabel="Begin night"
+          canAdvance={canAdvance}
+          recoveryAvailable={recoveryAvailable}
+          onReady={onReady}
+          onAdvance={onBeginNight}
+        />
       </div>
     </div>
   );

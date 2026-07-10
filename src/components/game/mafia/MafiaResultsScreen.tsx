@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
 import { Confetti } from "@/components/game/Confetti";
+import { GameEndControls } from "@/components/game/GameEndControls";
 import { ROLE_LABEL, roleGlow, MAFIA_GLOW, TOWN_GLOW } from "./shared";
 import type { Game, MafiaPlayerView } from "@/lib/game/types";
 
@@ -10,10 +10,20 @@ export function MafiaResultsScreen({
   game,
   players,
   winner,
+  isHost,
+  canRecoverHost,
+  onRematch,
+  onClose,
+  onRecoverHost,
 }: {
   game: Game;
   players: MafiaPlayerView[];
   winner: "town" | "mafia";
+  isHost: boolean;
+  canRecoverHost: boolean;
+  onRematch: () => Promise<void>;
+  onClose: () => Promise<void>;
+  onRecoverHost: () => Promise<void>;
 }) {
   void game;
   const townWon = winner === "town";
@@ -94,13 +104,13 @@ export function MafiaResultsScreen({
           })}
         </div>
 
-        <Link
-          href="/"
-          className="mt-2 flex h-14 w-full shrink-0 items-center justify-center rounded-full bg-surface-raised text-foreground font-display font-semibold text-base outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-          style={{ boxShadow: "inset 0 -3px 0 rgba(0,0,0,0.4), 0 4px 0 rgba(0,0,0,0.4), 0 6px 14px rgba(0,0,0,0.4)" }}
-        >
-          Back to home
-        </Link>
+        <GameEndControls
+          isHost={isHost}
+          canRecoverHost={canRecoverHost}
+          onRematch={onRematch}
+          onClose={onClose}
+          onRecoverHost={onRecoverHost}
+        />
       </div>
     </div>
   );

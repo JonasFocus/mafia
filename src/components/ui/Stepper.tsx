@@ -25,6 +25,8 @@ export function Stepper({
   return (
     <div className="flex flex-col gap-1.5">
       <div
+        role="radiogroup"
+        aria-label="Mafia count"
         className="relative flex rounded-[16px] border border-surface-border bg-surface p-1"
         style={{ boxShadow: "var(--elevation-1)" }}
       >
@@ -36,6 +38,8 @@ export function Stepper({
             <button
               key={option}
               type="button"
+              role="radio"
+              aria-checked={isSelected}
               disabled={isDisabled}
               onClick={() => !isDisabled && onChange(option)}
               className="relative flex h-11 flex-1 items-center justify-center rounded-[12px] text-base font-semibold disabled:pointer-events-none"

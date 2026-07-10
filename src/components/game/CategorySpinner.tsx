@@ -112,6 +112,7 @@ export function CategorySpinner({
                 };
               }}
               onClick={() => handleTap(c.id)}
+              aria-pressed={selected}
               className="relative z-20 flex w-full items-center justify-center gap-2 px-4 font-display font-semibold"
               style={{
                 height: ITEM_HEIGHT,
@@ -120,7 +121,7 @@ export function CategorySpinner({
                 fontSize: 17,
               }}
             >
-              <span className="shrink-0">{CATEGORY_ICONS[c.name] ?? "🎲"}</span>
+              <span className="shrink-0" aria-hidden="true">{CATEGORY_ICONS[c.name] ?? "🎲"}</span>
               <span className="min-w-0 truncate">{c.name}</span>
             </button>
           );

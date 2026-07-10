@@ -6,11 +6,12 @@ import { createClient } from "@/lib/supabase/client";
 import { MafiaGame } from "@/components/game/mafia/MafiaGame";
 import { ChameleonGame } from "@/components/game/ChameleonGame";
 import { GameErrorScreen } from "@/components/game/GameErrorScreen";
+import { getGameSnapshot } from "@/lib/game/actions";
 import type { GameMode } from "@/lib/game/types";
 
 export default function GamePage({ params }: { params: Promise<{ roomCode: string }> }) {
   const { roomCode } = use(params);
-  const [meta, setMeta] = useState<{ mode: GameMode; userId: string; isHost: boolean } | null>(null);
+  const [meta, setMeta] = useState<{ mode: GameMode; userId: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Resolve only the game mode (and who the host is) here, then hand off to a
@@ -24,26 +25,26 @@ export default function GamePage({ params }: { params: Promise<{ roomCode: strin
         {
           data: { user },
         },
-        { data: g, error: gErr },
+        snapshot,
       ] = await Promise.all([
         supabase.auth.getUser(),
-        supabase.from("games").select("game_mode, host_id").eq("room_code", roomCode.toUpperCase()).maybeSingle(),
+        getGameSnapshot(roomCode),
       ]);
       if (cancelled) return;
-      if (gErr) {
-        setError("Couldn’t load the game. Check your connection and try again.");
-        return;
-      }
-      if (!g || !user) {
+      const game = (snapshot as { game?: { game_mode?: GameMode } } | null)?.game;
+      if (!game?.game_mode || !user) {
         setError("Room not found");
         return;
       }
       setMeta({
-        mode: (g.game_mode as GameMode) ?? "chameleon",
+        mode: game.game_mode,
         userId: user.id,
-        isHost: g.host_id === user.id,
       });
-    })();
+    })().catch((err) => {
+      if (!cancelled) {
+        setError(err instanceof Error ? err.message : "Couldn’t load the game. Check your connection and try again.");
+      }
+    });
     return () => {
       cancelled = true;
     };
@@ -67,7 +68,7 @@ export default function GamePage({ params }: { params: Promise<{ roomCode: strin
   }
 
   if (meta.mode === "mafia") {
-    return <MafiaGame roomCode={roomCode} userId={meta.userId} isHost={meta.isHost} />;
+    return <MafiaGame roomCode={roomCode} userId={meta.userId} />;
   }
-  return <ChameleonGame roomCode={roomCode} userId={meta.userId} isHost={meta.isHost} />;
+  return <ChameleonGame roomCode={roomCode} userId={meta.userId} />;
 }

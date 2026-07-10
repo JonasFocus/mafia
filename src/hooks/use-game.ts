@@ -1,208 +1,51 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
-import { createClient } from "@/lib/supabase/client";
-import type { Game, PlayerView, Round } from "@/lib/game/types";
+import { useGameSnapshot } from "@/hooks/use-game-snapshot";
+import { usePhaseRecovery } from "@/hooks/use-phase-recovery";
+import type { PlayerView } from "@/lib/game/types";
 
 export function useGame(roomCode: string) {
-  const [supabase] = useState(() => createClient());
-  const [userId, setUserId] = useState<string | null>(null);
-  const [game, setGame] = useState<Game | null>(null);
-  const [players, setPlayers] = useState<PlayerView[]>([]);
-  const [round, setRound] = useState<Round | null>(null);
-  const [hintedPlayerIds, setHintedPlayerIds] = useState<string[]>([]);
-  const [votedPlayerIds, setVotedPlayerIds] = useState<string[]>([]);
-  const [myVoteCast, setMyVoteCast] = useState(false);
-  const [wordText, setWordText] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const gameIdRef = useRef<string | null>(null);
-
-  const refetchPlayers = useCallback(
-    async (gameId: string) => {
-      const [{ data: playerRows }, { data: { user } }] = await Promise.all([
-        supabase.from("game_players_public").select("*").eq("game_id", gameId).order("join_order"),
-        supabase.auth.getUser(),
-      ]);
-      if (!playerRows) return;
-      const rows = playerRows.filter((p): p is typeof p & { user_id: string } => p.user_id !== null);
-      const ids = rows.map((p) => p.user_id);
-      const { data: userRows } = await supabase.from("users").select("id, display_name").in("id", ids);
-      const nameById = new Map(userRows?.map((u) => [u.id, u.display_name]) ?? []);
-      setPlayers(
-        rows.map((p) => ({
-          userId: p.user_id,
-          displayName: nameById.get(p.user_id) ?? "Player",
-          isEliminated: !!p.is_eliminated,
-          isOutsider: p.is_outsider,
-          joinOrder: p.join_order ?? 0,
-        })),
-      );
-      if (user) setUserId(user.id);
-    },
-    [supabase],
+  const state = useGameSnapshot(roomCode);
+  const snapshot = state.snapshot;
+  const recoveryAvailable = usePhaseRecovery(
+    snapshot?.phase_deadline,
+    snapshot?.recovery_available ?? false,
   );
-
-  const refetchRound = useCallback(
-    async (gameId: string) => {
-      const { data: roundRow } = await supabase
-        .from("rounds")
-        .select("*")
-        .eq("game_id", gameId)
-        .order("round_number", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      setRound(roundRow);
-      if (!roundRow) {
-        setHintedPlayerIds([]);
-        setVotedPlayerIds([]);
-        setMyVoteCast(false);
-        return;
-      }
-      const [{ data: hints }, { data: voterIds }] = await Promise.all([
-        supabase.from("hints_given").select("player_id").eq("round_id", roundRow.id),
-        // votes RLS hides other ballots; this definer RPC returns voter ids only
-        supabase.rpc("round_voter_ids", { p_round_id: roundRow.id }),
-      ]);
-      setHintedPlayerIds(hints?.map((h) => h.player_id) ?? []);
-      setVotedPlayerIds(voterIds ?? []);
-
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) setMyVoteCast((voterIds ?? []).includes(user.id));
-    },
-    [supabase],
-  );
-
-  const refetchWord = useCallback(
-    async (g: Game) => {
-      if (!g.word_id) {
-        setWordText(null);
-        return;
-      }
-      const { data } = await supabase.from("words").select("text").eq("id", g.word_id).maybeSingle();
-      setWordText(data?.text ?? null);
-    },
-    [supabase],
-  );
-
-  const refetchGame = useCallback(
-    async (gameId: string) => {
-      const { data: g, error: gErr } = await supabase.from("games").select("*").eq("id", gameId).maybeSingle();
-      if (gErr) {
-        setError(gErr.message);
-        return;
-      }
-      if (!g) {
-        // The game row was deleted out from under us (host ended the game).
-        if (gameIdRef.current) {
-          setGame(null);
-          setError("This game has ended");
-        }
-        return;
-      }
-      setGame(g);
-      await Promise.all([refetchPlayers(gameId), refetchRound(gameId), refetchWord(g)]);
-    },
-    [supabase, refetchPlayers, refetchRound, refetchWord],
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function init() {
-      setLoading(true);
-      const { data: g, error: gErr } = await supabase
-        .from("games")
-        .select("*")
-        .eq("room_code", roomCode.toUpperCase())
-        .maybeSingle();
-      if (cancelled) return;
-      if (gErr) {
-        setError("Couldn’t load the game. Check your connection and try again.");
-        setLoading(false);
-        return;
-      }
-      if (!g) {
-        setError("Room not found");
-        setLoading(false);
-        return;
-      }
-      gameIdRef.current = g.id;
-      await refetchGame(g.id);
-      setLoading(false);
-    }
-    init();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [roomCode, supabase, refetchGame]);
-
-  useEffect(() => {
-    if (!game?.id) return;
-    const gameId = game.id;
-
-    const channel = supabase
-      .channel(`game:${gameId}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "games", filter: `id=eq.${gameId}` }, () =>
-        refetchGame(gameId),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "game_players", filter: `game_id=eq.${gameId}` },
-        () => refetchPlayers(gameId),
-      )
-      .on("postgres_changes", { event: "*", schema: "public", table: "rounds", filter: `game_id=eq.${gameId}` }, () =>
-        refetchRound(gameId),
-      )
-      // hint/vote inserts touch games.updated_at server-side, so the filtered
-      // games listener above drives round-progress refetches — no unscoped
-      // listeners (votes RLS wouldn't deliver other ballots anyway)
-      .subscribe((status) => {
-        // On (re)connect, catch up on anything missed while the socket was down.
-        if (status === "SUBSCRIBED") refetchGame(gameId);
-      });
-
-    const onVisible = () => {
-      if (document.visibilityState === "visible") refetchGame(gameId);
-    };
-    document.addEventListener("visibilitychange", onVisible);
-
-    return () => {
-      document.removeEventListener("visibilitychange", onVisible);
-      supabase.removeChannel(channel);
-    };
-  }, [game?.id, supabase, refetchGame, refetchPlayers, refetchRound]);
-
-  // Lobby membership can't stream over realtime: game_players RLS is own-row-only,
-  // so postgres_changes never delivers another player's INSERT to existing clients.
-  // Poll the (security-definer) player list while in the lobby so the roster and
-  // the Start button stay current as people join.
-  useEffect(() => {
-    if (game?.status !== "lobby" || !game?.id) return;
-    const gameId = game.id;
-    const interval = setInterval(() => refetchPlayers(gameId), 2500);
-    return () => clearInterval(interval);
-  }, [game?.status, game?.id, refetchPlayers]);
-
-  const refetchCurrent = useCallback(() => {
-    if (gameIdRef.current) return refetchGame(gameIdRef.current);
-  }, [refetchGame]);
+  const players: PlayerView[] =
+    snapshot?.players.map((player) => ({
+      userId: player.user_id,
+      displayName: player.display_name,
+      isEliminated: player.is_eliminated,
+      isOutsider: player.is_outsider,
+      joinOrder: player.join_order,
+      lastSeenAt: player.last_seen_at,
+    })) ?? [];
 
   return {
-    userId,
-    game,
+    userId: null,
+    game: snapshot?.game ?? null,
+    categoryName: snapshot?.game.category_name ?? "",
     players,
-    round,
-    hintedPlayerIds,
-    votedPlayerIds,
-    myVoteCast,
-    wordText,
-    loading,
-    error,
-    refetchCurrent,
+    round: snapshot?.round ?? null,
+    hintedPlayerIds: snapshot?.hinted_player_ids ?? [],
+    votedPlayerIds: snapshot?.voted_player_ids ?? [],
+    myVoteCast: snapshot?.my_vote_target_id != null,
+    myVoteTargetId: snapshot?.my_vote_target_id ?? null,
+    wordText: snapshot?.word_text ?? null,
+    readyPlayerIds: snapshot?.ready_player_ids ?? [],
+    tiedPlayerIds: snapshot?.tied_player_ids ?? [],
+    guessWordOptions: snapshot?.guess_word_options ?? [],
+    chameleonId: snapshot?.chameleon_id ?? null,
+    dealerId: snapshot?.dealer_id ?? null,
+    myTieBreakChoiceId: null,
+    canAdvance: snapshot?.can_advance ?? false,
+    recoveryAvailable,
+    guessesRemaining: snapshot?.guesses_remaining ?? 0,
+    guessedWordIds: snapshot?.guessed_word_ids ?? [],
+    loading: state.loading,
+    error: state.error,
+    connectionState: state.connectionState,
+    retryConnection: state.retryConnection,
+    refetchCurrent: state.refetchCurrent,
   };
 }

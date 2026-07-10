@@ -15,7 +15,15 @@ export async function ensureGuestSession(displayName: string) {
 
   if (!user) {
     const { data, error } = await supabase.auth.signInAnonymously();
-    if (error) throw error;
+    if (error) {
+      if (error.code === "over_request_rate_limit") {
+        throw new Error("Too many new players are joining right now. Wait a few minutes and try again.");
+      }
+      if (error.code === "anonymous_provider_disabled") {
+        throw new Error("Guest sessions are temporarily unavailable.");
+      }
+      throw error;
+    }
     user = data.user;
   }
   if (!user) throw new Error("Failed to establish a session");

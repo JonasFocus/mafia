@@ -92,6 +92,45 @@ export type Database = {
           },
         ]
       }
+      game_phase_acknowledgements: {
+        Row: {
+          acknowledged_at: string
+          game_id: string
+          phase: Database["public"]["Enums"]["game_status"]
+          round_number: number
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string
+          game_id: string
+          phase: Database["public"]["Enums"]["game_status"]
+          round_number: number
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string
+          game_id?: string
+          phase?: Database["public"]["Enums"]["game_status"]
+          round_number?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_phase_acknowledgements_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_phase_acknowledgements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       game_players: {
         Row: {
           game_id: string
@@ -100,6 +139,7 @@ export type Database = {
           is_outsider: boolean
           join_order: number
           joined_at: string
+          last_seen_at: string
           role: Database["public"]["Enums"]["player_role"] | null
           user_id: string
         }
@@ -110,6 +150,7 @@ export type Database = {
           is_outsider?: boolean
           join_order: number
           joined_at?: string
+          last_seen_at?: string
           role?: Database["public"]["Enums"]["player_role"] | null
           user_id: string
         }
@@ -120,6 +161,7 @@ export type Database = {
           is_outsider?: boolean
           join_order?: number
           joined_at?: string
+          last_seen_at?: string
           role?: Database["public"]["Enums"]["player_role"] | null
           user_id?: string
         }
@@ -140,13 +182,63 @@ export type Database = {
           },
         ]
       }
+      game_secrets: {
+        Row: {
+          created_at: string
+          game_id: string
+          guess_attempt_ids: string[]
+          guess_candidate_ids: string[]
+          guesses_remaining: number
+          updated_at: string
+          word_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          game_id: string
+          guess_attempt_ids?: string[]
+          guess_candidate_ids?: string[]
+          guesses_remaining?: number
+          updated_at?: string
+          word_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          game_id?: string
+          guess_attempt_ids?: string[]
+          guess_candidate_ids?: string[]
+          guesses_remaining?: number
+          updated_at?: string
+          word_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "game_secrets_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: true
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "game_secrets_word_id_fkey"
+            columns: ["word_id"]
+            isOneToOne: false
+            referencedRelation: "words"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       games: {
         Row: {
           angel_enabled: boolean
-          category_id: string
+          category_id: string | null
+          chameleon_caught_id: string | null
+          chameleon_tied_player_ids: string[]
+          chameleon_vote_stage: number
           created_at: string
           current_round: number
+          dealer_id: string | null
           ended_at: string | null
+          expires_at: string
           game_mode: string
           host_id: string
           id: string
@@ -154,6 +246,7 @@ export type Database = {
           last_night_victim: string | null
           mafia_count: number
           max_rounds: number
+          phase_started_at: string
           reveal_role_on_death: boolean
           room_code: string
           sheriff_enabled: boolean
@@ -165,10 +258,15 @@ export type Database = {
         }
         Insert: {
           angel_enabled?: boolean
-          category_id: string
+          category_id?: string | null
+          chameleon_caught_id?: string | null
+          chameleon_tied_player_ids?: string[]
+          chameleon_vote_stage?: number
           created_at?: string
           current_round?: number
+          dealer_id?: string | null
           ended_at?: string | null
+          expires_at?: string
           game_mode?: string
           host_id: string
           id?: string
@@ -176,6 +274,7 @@ export type Database = {
           last_night_victim?: string | null
           mafia_count?: number
           max_rounds?: number
+          phase_started_at?: string
           reveal_role_on_death?: boolean
           room_code: string
           sheriff_enabled?: boolean
@@ -187,10 +286,15 @@ export type Database = {
         }
         Update: {
           angel_enabled?: boolean
-          category_id?: string
+          category_id?: string | null
+          chameleon_caught_id?: string | null
+          chameleon_tied_player_ids?: string[]
+          chameleon_vote_stage?: number
           created_at?: string
           current_round?: number
+          dealer_id?: string | null
           ended_at?: string | null
+          expires_at?: string
           game_mode?: string
           host_id?: string
           id?: string
@@ -198,6 +302,7 @@ export type Database = {
           last_night_victim?: string | null
           mafia_count?: number
           max_rounds?: number
+          phase_started_at?: string
           reveal_role_on_death?: boolean
           room_code?: string
           sheriff_enabled?: boolean
@@ -213,6 +318,20 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "games_chameleon_caught_id_fkey"
+            columns: ["chameleon_caught_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "games_dealer_id_fkey"
+            columns: ["dealer_id"]
+            isOneToOne: false
+            referencedRelation: "users"
             referencedColumns: ["id"]
           },
           {
@@ -394,6 +513,7 @@ export type Database = {
           cast_at: string
           id: string
           round_id: string
+          vote_stage: number
           voted_for_id: string
           voter_id: string
         }
@@ -401,6 +521,7 @@ export type Database = {
           cast_at?: string
           id?: string
           round_id: string
+          vote_stage?: number
           voted_for_id: string
           voter_id: string
         }
@@ -408,6 +529,7 @@ export type Database = {
           cast_at?: string
           id?: string
           round_id?: string
+          vote_stage?: number
           voted_for_id?: string
           voter_id?: string
         }
@@ -465,12 +587,14 @@ export type Database = {
     Views: {
       game_players_public: {
         Row: {
+          display_name: string | null
           game_id: string | null
           id: string | null
           is_eliminated: boolean | null
           is_outsider: boolean | null
           join_order: number | null
           joined_at: string | null
+          last_seen_at: string | null
           role: Database["public"]["Enums"]["player_role"] | null
           user_id: string | null
         }
@@ -506,14 +630,35 @@ export type Database = {
         Args: { p_game_id: string; p_round: number }
         Returns: undefined
       }
+      advance_game_phase: { Args: { p_game_id: string }; Returns: undefined }
       begin_day_vote: { Args: { p_game_id: string }; Returns: undefined }
       begin_night: { Args: { p_game_id: string }; Returns: undefined }
+      break_chameleon_tie: {
+        Args: { p_game_id: string; p_target_id: string }
+        Returns: undefined
+      }
+      cast_chameleon_vote: {
+        Args: { p_game_id: string; p_target_id: string }
+        Returns: undefined
+      }
       cast_day_vote: {
         Args: { p_game_id: string; p_target_id: string }
         Returns: undefined
       }
+      claim_room_host: { Args: { p_game_id: string }; Returns: string }
+      close_game: { Args: { p_game_id: string }; Returns: undefined }
       count_game_players: { Args: { p_game_id: string }; Returns: number }
+      create_game: {
+        Args: { p_category_id?: string; p_game_mode: string }
+        Returns: {
+          game_mode: string
+          id: string
+          room_code: string
+        }[]
+      }
       force_advance_phase: { Args: { p_game_id: string }; Returns: undefined }
+      get_game_snapshot: { Args: { p_room_code: string }; Returns: Json }
+      heartbeat_game: { Args: { p_game_id: string }; Returns: string }
       join_game: {
         Args: { p_room_code: string }
         Returns: {
@@ -522,9 +667,11 @@ export type Database = {
           room_code: string
         }[]
       }
+      leave_game: { Args: { p_game_id: string }; Returns: undefined }
       list_open_games: {
         Args: never
         Returns: {
+          capacity: number
           created_at: string
           game_mode: string
           host_name: string
@@ -532,16 +679,39 @@ export type Database = {
           room_code: string
         }[]
       }
+      mark_phase_ready: { Args: { p_game_id: string }; Returns: undefined }
+      reset_game_for_rematch: {
+        Args: { p_game_id: string }
+        Returns: undefined
+      }
       resolve_day: { Args: { p_game_id: string }; Returns: undefined }
       resolve_night: { Args: { p_game_id: string }; Returns: undefined }
       round_voter_ids: { Args: { p_round_id: string }; Returns: string[] }
       start_game: { Args: { p_game_id: string }; Returns: undefined }
       start_mafia_game: { Args: { p_game_id: string }; Returns: undefined }
+      submit_chameleon_guess: {
+        Args: { p_game_id: string; p_word_id: string }
+        Returns: Json
+      }
+      submit_chameleon_hint: { Args: { p_game_id: string }; Returns: undefined }
       submit_night_action: {
         Args: {
           p_action_type: Database["public"]["Enums"]["night_action_type"]
           p_game_id: string
           p_target_id: string
+        }
+        Returns: undefined
+      }
+      update_game_settings: {
+        Args: {
+          p_angel_enabled?: boolean
+          p_category_id?: string
+          p_game_id: string
+          p_mafia_count?: number
+          p_max_rounds?: number
+          p_reveal_role_on_death?: boolean
+          p_sheriff_enabled?: boolean
+          p_show_categories?: boolean
         }
         Returns: undefined
       }
@@ -558,6 +728,8 @@ export type Database = {
         | "day_result"
         | "day_vote"
         | "lynch_result"
+        | "chameleon_tie_break"
+        | "chameleon_guess"
       night_action_type: "kill" | "inspect" | "protect"
       player_role: "faithful" | "mafia" | "sheriff" | "angel"
     }
@@ -698,6 +870,8 @@ export const Constants = {
         "day_result",
         "day_vote",
         "lynch_result",
+        "chameleon_tie_break",
+        "chameleon_guess",
       ],
       night_action_type: ["kill", "inspect", "protect"],
       player_role: ["faithful", "mafia", "sheriff", "angel"],

@@ -69,13 +69,16 @@ export default function HostPage() {
 
   async function handleHost(e: React.FormEvent) {
     e.preventDefault();
-    if (!name.trim() || !categoryId) return;
+    if (!name.trim() || (mode === "chameleon" && !categoryId)) return;
     setLoading(true);
     setError(null);
     try {
       setStoredName(name.trim());
-      const userId = await ensureGuestSession(name.trim());
-      const game = await createGame(userId, categoryId, mode);
+      await ensureGuestSession(name.trim());
+      const game = await createGame(
+        mode === "chameleon" ? categoryId : null,
+        mode,
+      );
       router.push(`/game/${game.room_code}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Couldn’t create the room. Try again.");
@@ -94,12 +97,16 @@ export default function HostPage() {
       />
       <Link
         href="/"
-        className="relative mb-6 w-fit rounded-[10px] border border-surface-border bg-background/50 px-3 py-2 text-sm text-foreground-muted outline-none transition-colors hover:text-foreground active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent"
+        className="relative mb-6 flex min-h-11 w-fit items-center rounded-[10px] border border-surface-border bg-background/50 px-3 py-2 text-sm text-foreground-muted outline-none transition-colors hover:text-foreground active:opacity-70 focus-visible:ring-2 focus-visible:ring-accent"
       >
         Back
       </Link>
 
-      <form onSubmit={handleHost} className="relative mx-auto flex w-full max-w-md flex-1 flex-col gap-8">
+      <form
+        onSubmit={handleHost}
+        aria-busy={loading}
+        className="relative mx-auto flex w-full max-w-md flex-1 flex-col gap-8"
+      >
         <div className="flex flex-col gap-2">
           <h1 className="font-display text-5xl font-semibold leading-none">Host a game</h1>
           <p className="max-w-sm text-sm leading-6 text-foreground-muted">
@@ -108,6 +115,8 @@ export default function HostPage() {
         </div>
 
         <div
+          role="group"
+          aria-label="Game mode"
           className="relative flex rounded-[16px] border border-surface-border p-1"
           style={{ background: "color-mix(in srgb, var(--surface) 86%, transparent)", boxShadow: "var(--elevation-1)" }}
         >
@@ -117,8 +126,9 @@ export default function HostPage() {
               <button
                 key={m}
                 type="button"
+                aria-pressed={active}
                 onClick={() => setMode(m)}
-                className="relative flex-1 rounded-[12px] py-3 text-sm font-semibold capitalize"
+                className="relative min-h-11 flex-1 rounded-[12px] py-3 text-sm font-semibold capitalize outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 style={{ color: active ? "var(--accent-foreground)" : "var(--foreground-muted)" }}
               >
                 {active && (
@@ -154,7 +164,6 @@ export default function HostPage() {
             spellCheck={false}
             className="h-14 rounded-[14px] border border-surface-border bg-surface px-5 text-base outline-none transition-shadow focus:ring-2 focus:ring-accent"
             style={{ boxShadow: "var(--elevation-1)" }}
-            autoFocus
           />
         </div>
 
@@ -168,16 +177,16 @@ export default function HostPage() {
                 style={{ boxShadow: "var(--elevation-2)" }}
               >
                 {categoriesLoading ? (
-                  <div className="flex h-[180px] items-center justify-center">
-                    <span className="text-sm text-foreground-muted">Loading categories...</span>
+                  <div role="status" className="flex h-[180px] items-center justify-center">
+                    <span className="text-sm text-foreground-muted">Loading categories…</span>
                   </div>
                 ) : categoriesError ? (
-                  <div className="flex h-[180px] flex-col items-center justify-center gap-3">
+                  <div role="alert" className="flex h-[180px] flex-col items-center justify-center gap-3">
                     <span className="text-sm text-foreground-muted">Couldn&rsquo;t load categories.</span>
                     <button
                       type="button"
                       onClick={retryCategories}
-                      className="text-sm font-semibold text-accent-bright"
+                      className="flex min-h-11 items-center rounded-[12px] px-4 text-sm font-semibold text-accent-bright outline-none focus-visible:ring-2 focus-visible:ring-accent"
                     >
                       Retry
                     </button>
@@ -206,14 +215,18 @@ export default function HostPage() {
 
         <div className="flex-1" />
 
-        {error && <p className="text-sm text-outsider-glow text-center">{error}</p>}
+        {error && <p role="alert" className="text-sm text-outsider-glow text-center">{error}</p>}
 
         <p className="text-center text-xs text-foreground-muted">
-          {mode === "mafia" ? "Best with 5-25 players" : "Best with 4-8 players"}
+          {mode === "mafia" ? "Best with 5-25 players" : "For 3-8 players"}
         </p>
 
-        <Button type="submit" disabled={loading || !name.trim() || !categoryId} className="w-full">
-          {loading ? "Creating room..." : "Create Room"}
+        <Button
+          type="submit"
+          disabled={loading || !name.trim() || (mode === "chameleon" && !categoryId)}
+          className="w-full"
+        >
+          {loading ? "Creating room…" : "Create Room"}
         </Button>
       </form>
     </main>
