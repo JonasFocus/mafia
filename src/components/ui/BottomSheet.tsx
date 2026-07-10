@@ -36,7 +36,7 @@ export function BottomSheet({
               background:
                 "linear-gradient(180deg, color-mix(in srgb, var(--surface-overlay) 96%, transparent), var(--surface))",
               boxShadow: "var(--elevation-3)",
-              maxHeight: "85vh",
+              maxHeight: "85dvh",
               borderTop: "1px solid var(--surface-border-strong)",
             }}
             initial={{ y: "100%" }}
@@ -51,7 +51,12 @@ export function BottomSheet({
             <div className="flex justify-center pt-3 pb-1 shrink-0">
               <div className="rounded-full" style={{ width: 42, height: 4, background: "var(--surface-border-strong)" }} />
             </div>
-            <div className="p-6 overflow-y-auto">{children}</div>
+            <div
+              className="p-6 overflow-y-auto"
+              style={{ paddingBottom: "max(1.5rem, var(--safe-bottom))" }}
+            >
+              {children}
+            </div>
           </motion.div>
         </div>
       )}
