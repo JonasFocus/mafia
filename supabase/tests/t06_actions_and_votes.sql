@@ -18,7 +18,7 @@ begin
   exception when others then v_err := true; end;
   perform test.ok(v_err, 'no kills during role_reveal');
 
-  perform test.act(host); perform public.begin_night(g.game_id);
+  perform test.act(host); perform test.begin_night(g.game_id);
 
   -- Role misuse.
   v_err := false;
@@ -49,7 +49,7 @@ begin
   perform test.ok(test.status(g.game_id) = 'day_result', 'night resolved');
   victim := faithful[1];
 
-  perform test.act(host); perform public.begin_day_vote(g.game_id);
+  perform test.act(host); perform test.begin_day_vote(g.game_id);
 
   -- Dead players cannot vote; nobody can vote for the dead.
   v_err := false;
@@ -88,13 +88,13 @@ begin
   perform test.ok(v_err, 'no votes during lynch_result');
 
   -- Self-vote is allowed by design.
-  perform test.act(host); perform public.begin_night(g.game_id);
+  perform test.act(host); perform test.begin_night(g.game_id);
   perform test.ok(test.round(g.game_id) = 2, 'round 2');
   perform test.kill(g.game_id, mafia[1], faithful[2]);
   perform test.inspect(g.game_id, sheriff, mafia[1]);
   perform test.protect(g.game_id, angel, faithful[2]);  -- save
   perform test.ok((select last_night_victim from games where id = g.game_id) is null, 'angel save on night 2');
-  perform test.act(host); perform public.begin_day_vote(g.game_id);
+  perform test.act(host); perform test.begin_day_vote(g.game_id);
   perform test.vote(g.game_id, mafia[1], mafia[1]);
   perform test.ok(
     (select target_id from day_votes where game_id = g.game_id and voter_id = mafia[1] and round_number = 2) = mafia[1],

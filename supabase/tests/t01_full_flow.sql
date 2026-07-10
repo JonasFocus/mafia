@@ -27,7 +27,7 @@ begin
   faithful := test.living(g.game_id, 'faithful');
 
   perform test.act(host);
-  perform public.begin_night(g.game_id);
+  perform test.begin_night(g.game_id);
   perform test.ok(test.status(g.game_id) = 'night', 'night 1 begins');
   perform test.ok(test.round(g.game_id) = 1, 'round still 1 entering night 1');
 
@@ -47,7 +47,7 @@ begin
   perform test.ok((select is_eliminated from game_players where game_id = g.game_id and user_id = faithful[1]), 'victim eliminated');
 
   perform test.act(host);
-  perform public.begin_day_vote(g.game_id);
+  perform test.begin_day_vote(g.game_id);
   perform test.ok(test.status(g.game_id) = 'day_vote', 'day vote begins');
 
   -- Day 1: 6 alive. Everyone but mafia[1] votes mafia[1]; mafia[1] votes sheriff.
@@ -65,7 +65,7 @@ begin
   perform test.ok(test.round(g.game_id) = 1, 'round does NOT bump at lynch_result');
 
   perform test.act(host);
-  perform public.begin_night(g.game_id);
+  perform test.begin_night(g.game_id);
   perform test.ok(test.status(g.game_id) = 'night', 'night 2 begins');
   perform test.ok(test.round(g.game_id) = 2, 'round bumps entering night 2');
 
@@ -81,7 +81,7 @@ begin
 
   -- Day 2: 4 alive (mafia[2], sheriff, angel, faithful[3]). Town lynches the last mafia -> town wins.
   perform test.act(host);
-  perform public.begin_day_vote(g.game_id);
+  perform test.begin_day_vote(g.game_id);
   perform test.vote(g.game_id, mafia[2], faithful[3]);
   perform test.vote(g.game_id, sheriff, mafia[2]);
   perform test.vote(g.game_id, angel, mafia[2]);

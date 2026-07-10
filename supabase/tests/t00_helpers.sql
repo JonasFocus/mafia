@@ -40,14 +40,56 @@ begin
   for i in 1..p_n loop
     v_uids := v_uids || test.mk_user('p' || i);
   end loop;
-  insert into games (room_code, host_id, category_id, game_mode, mafia_count, sheriff_enabled, angel_enabled)
-  values (upper(substr(md5(random()::text), 1, 6)), v_uids[1], v_cat, p_mode, p_mafia, p_sheriff, p_angel)
-  returning id into v_game;
-  foreach v_uid in array v_uids loop
-    perform test.act(v_uid);
-    perform public.join_game((select g.room_code from games g where g.id = v_game));
-  end loop;
+  perform test.act(v_uids[1]);
+  select created.id into v_game
+  from public.create_game(
+    p_mode,
+    case when p_mode = 'chameleon' then v_cat else null end
+  ) created;
+  perform public.update_game_settings(
+    v_game,
+    case when p_mode = 'chameleon' then v_cat else null end,
+    p_mafia,
+    null,
+    p_sheriff,
+    p_angel,
+    null,
+    null
+  );
+  if p_n > 1 then
+    foreach v_uid in array v_uids[2:p_n] loop
+      perform test.act(v_uid);
+      perform public.join_game((select g.room_code from games g where g.id = v_game));
+    end loop;
+  end if;
   return query select v_game, v_uids;
+end $$;
+
+create or replace function test.expire_phase(p_game uuid) returns void
+language sql as $$
+  update games set phase_started_at = clock_timestamp() - interval '121 seconds'
+  where id = p_game;
+$$;
+
+create or replace function test.begin_night(p_game uuid) returns void
+language plpgsql as $$
+begin
+  perform test.expire_phase(p_game);
+  perform public.begin_night(p_game);
+end $$;
+
+create or replace function test.begin_day_vote(p_game uuid) returns void
+language plpgsql as $$
+begin
+  perform test.expire_phase(p_game);
+  perform public.begin_day_vote(p_game);
+end $$;
+
+create or replace function test.force_advance_phase(p_game uuid) returns void
+language plpgsql as $$
+begin
+  perform test.expire_phase(p_game);
+  perform public.force_advance_phase(p_game);
 end $$;
 
 create or replace function test.status(p_game uuid) returns game_status

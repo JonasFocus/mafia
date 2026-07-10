@@ -48,7 +48,7 @@ for f in ../migrations/*.sql; do
   $PSQL -d mafia --single-transaction -f "$f"
 done
 
-for f in t0[0-9]*.sql; do
+for f in t*.sql; do
   echo "=== $f"
   $PSQL -d mafia -f "$f"
 done
